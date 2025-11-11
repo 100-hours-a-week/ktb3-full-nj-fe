@@ -1,13 +1,20 @@
 // 회원가입 메인 로직
 
-// 프로필 이미지 파일 저장
+// 회원가입 폼 검증
+const formValidation = {
+  profileImage: false,
+  email: false,
+  password: false,
+  passwordConfirm: false,
+  nickname: false
+};
+
+// 프로필 이미지 입력 이벤트
 let profileImageFile = null;
 
-// 이벤트 리스너 초기화
-function initEventListeners() {
-  console.log('이벤트 리스너 진행');
-  
-  // 프로필 이미지 업로드
+function setupProfileImageEvent() {
+  console.log('회원가입 : 프로필 이미지 처리 중');
+
   document.getElementById('profileUpload').addEventListener('click', function() {
     document.getElementById('profileInput').click();
   });
@@ -16,77 +23,92 @@ function initEventListeners() {
     const file = e.target.files[0];
     if (file) {
       profileImageFile = file;
-      
       const reader = new FileReader();
       reader.onload = function(e) {
-        const profileUpload = document.getElementById('profileUpload');
-        profileUpload.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+        document.getElementById('profileUpload').innerHTML = 
+          `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
         
         formValidation.profileImage = true;
-        updateButtonState();
+        updateButtonState(formValidation);
         
-        // helper text 숨기기
         document.querySelector('.profile-upload-helper').style.display = 'none';
-        
-        console.log('프로필 이미지 업로드됨:', file.name);
       };
       reader.readAsDataURL(file);
     }
   });
-  
-  // ===== 이메일 =====
+}
+
+// 이메일 입력 이벤트
+function setupEmailEvents() {
+  console.log('회원가입 : 이메일 처리 중');
+
   document.getElementById('emailInput').addEventListener('blur', function() {
-    validateEmail(this.value.trim());
-    updateButtonState();
+    validateEmail(this.value.trim(), formValidation);
+    updateButtonState(formValidation);
   });
   
   document.getElementById('emailInput').addEventListener('input', function() {
     if (this.value) clearError('emailInput');
   });
-  
-  // ===== 비밀번호 =====
+}
+
+// 비밀번호 입력 이벤트
+function setupPasswordEvents() {
+  console.log('회원가입 : 비밀번호 처리 중');
+
   document.getElementById('passwordInput').addEventListener('blur', function() {
-    validatePassword(this.value);
-    updateButtonState();
+    validatePassword(this.value, formValidation);
+    updateButtonState(formValidation);
   });
   
   document.getElementById('passwordInput').addEventListener('input', function() {
     if (this.value) clearError('passwordInput');
   });
-  
-  // ===== 비밀번호 확인 =====
+}
+
+// 비밀번호 확인 입력 이벤트
+function setupPasswordConfirmEvents() {
+  console.log('회원가입 : 비밀번호 확인 처리 중');
+
   document.getElementById('passwordConfirmInput').addEventListener('blur', function() {
-    validatePasswordConfirm(this.value);
-    updateButtonState();
+    validatePasswordConfirm(this.value, formValidation);
+    updateButtonState(formValidation);
   });
   
   document.getElementById('passwordConfirmInput').addEventListener('input', function() {
     if (this.value) clearError('passwordConfirmInput');
   });
-  
-  // ===== 닉네임 =====
+}
+
+// 닉네임 입력 이벤트
+function setupNicknameEvents() {
+  console.log('회원가입 : 닉네임 처리 중');
+
   document.getElementById('nicknameInput').addEventListener('blur', function() {
-    validateNickname(this.value.trim());
-    updateButtonState();
+    validateNickname(this.value.trim(), formValidation);
+    updateButtonState(formValidation);
   });
   
   document.getElementById('nicknameInput').addEventListener('input', function() {
     if (this.value) clearError('nicknameInput');
   });
+}
   
-  // ===== 폼 제출 =====
-  document.getElementById('signinForm').addEventListener('submit', handleSubmit);
-  
-  console.log('이벤트 리스너 등록 완료');
+// 회원가입 폼 입력 이벤트
+function setupFormSubmitEvent() {  
+  console.log('회원가입 : 폼 처리 중');
+
+  document.getElementById('signinForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    handleSubmit();
+  });
 }
 
-// 회원가입 
+// 회원가입 진행
 async function handleSubmit(e) {
-  e.preventDefault();
-  
   console.log('회원가입 시도');
   
-  // 1. 데이터 수집
+  // 데이터 수집
   const formData = {
     email: document.getElementById('emailInput').value.trim(),
     password: document.getElementById('passwordInput').value,
@@ -95,25 +117,18 @@ async function handleSubmit(e) {
     profileImage: profileImageFile
   };
   
-  console.log('📝 폼 데이터:', {
-    email: formData.email,
-    nickname: formData.nickname,
-    hasProfileImage: !!formData.profileImage
-  });
-  
-  // 2. 최종 검증 (혹시 모를 직접 제출 방지)
+  // 최종 검증
   const isValid = 
-    validateEmail(formData.email) &&
-    validatePassword(formData.password) &&
-    validatePasswordConfirm(formData.passwordConfirm) &&
-    validateNickname(formData.nickname);
+    validateEmail(formData.email, formValidation) &&
+    validatePassword(formData.password, formValidation) &&
+    validatePasswordConfirm(formData.passwordConfirm, formValidation) &&
+    validateNickname(formData.nickname, formValidation);
   
   if (!isValid) {
     console.log('검증 실패');
     return;
   }
-  
-  // 3. 프로필 이미지 체크
+
   if (!formData.profileImage) {
     document.querySelector('.profile-upload-helper').textContent = '*프로필 사진을 추가해주세요.';
     document.querySelector('.profile-upload-helper').style.display = 'block';
@@ -122,14 +137,14 @@ async function handleSubmit(e) {
     return;
   }
   
-  console.log('모든 검증 통과');
+  console.log('회원가입 : 모든 검증 통과');
   
   // 4. 로딩 상태
   setLoadingState(true);
   
   try {
-    // 5. 중복 체크
-    console.log('🔍 중복 체크 시작...');
+    // TODO : 중복 체크 실제 api
+    console.log('회원가입 : 이메일, 닉네임 중복 체크 중');
     
     const isEmailDuplicate = await checkEmailDuplicate(formData.email);
     if (isEmailDuplicate) {
@@ -145,7 +160,7 @@ async function handleSubmit(e) {
       return;
     }
     
-    console.log('중복 체크 통과');
+    console.log('회원가입 : 중복 체크 통과');
     
     // 6. 회원가입 API 호출
     const result = await signup(formData);
@@ -155,7 +170,7 @@ async function handleSubmit(e) {
       alert(`환영합니다, ${result.user.nickname}님! \n회원가입이 완료되었습니다.`);
       
       // 로그인 페이지로 이동
-      window.location.href = 'index.html';
+      window.location.href = 'login.html';
     } else {
       console.log('회원가입 실패:', result.message);
       alert(result.message || '회원가입에 실패했습니다.');
@@ -169,19 +184,20 @@ async function handleSubmit(e) {
   }
 }
 
-// 초기화
+// 회원가입 페이지 초기화
 function init() {
-  console.log('회원가입 페이지 초기화...');
+  console.log('회원가입 페이지 불러오는 중');
   
-  // 이벤트 리스너 등록
-  initEventListeners();
+  setupProfileImageEvent();
+  setupEmailEvents();
+  setupPasswordEvents();
+  setupPasswordConfirmEvents();
+  setupNicknameEvents();
+  setupFormSubmitEvent();
+
+  updateButtonState(formValidation);
   
-  // 초기 버튼 상태 (비활성)
-  updateButtonState();
-  
-  console.log('회원가입 페이지 준비 완료!');
-  console.log('테스트 가능한 중복 이메일: test@test.com, user@example.com');
-  console.log('테스트 가능한 중복 닉네임: 배기, 테스트, admin');
+  console.log('회원가입 페이지 로딩 완료!');
 }
 
 // DOM 로드 완료 후 초기화
@@ -191,4 +207,4 @@ if (document.readyState === 'loading') {
   init();
 }
 
-console.log('signin.js 로드 완료');
+console.log('sign-in.js 로드 완료');

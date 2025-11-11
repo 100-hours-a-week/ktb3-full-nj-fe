@@ -1,14 +1,5 @@
 // 유틸 변수 및 함수
 
-// 회원가입 필드별 검증 상태 확인 => 전역 변수
-const formValidation = {
-  profileImage: false,
-  email: false,
-  password: false,
-  passwordConfirm: false,
-  nickname: false
-};
-
 // 에러 메세지 출력
 function showError(inputId, message) {
   const input = document.getElementById(inputId);
@@ -19,7 +10,7 @@ function showError(inputId, message) {
   helperText.style.display = 'block';
 }
 
-// 에러 메세지 삭제
+// 에러 메세지 초기화
 function clearError(inputId) {
   const input = document.getElementById(inputId);
   const helperText = input.nextElementSibling;
@@ -29,7 +20,7 @@ function clearError(inputId) {
 }
 
 // 회원가입 버튼 상태
-function updateButtonState() {
+function updateButtonState(formValidation) {
   const submitBtn = document.querySelector('button[type="submit"]');
   const allValid = Object.values(formValidation).every(v => v === true);
   
@@ -44,16 +35,28 @@ function updateButtonState() {
   }
 }
 
-// 로딩
-function setLoadingState(isLoading) {
+// 로딩 표시
+function setLoadingState(isLoading, loadingText = '처리중...', defaultText = null) {
   const submitBtn = document.querySelector('button[type="submit"]');
+  if (!submitBtn) return;
   
   if (isLoading) {
     submitBtn.disabled = true;
-    submitBtn.textContent = '처리중...';
+    submitBtn.textContent = loadingText;
     submitBtn.style.cursor = 'wait';
   } else {
-    submitBtn.textContent = '회원가입';
-    updateButtonState();
+    // 기본 텍스트 자동 감지
+    if (!defaultText) {
+      const form = submitBtn.closest('form');
+      if (form && form.id.includes('login')) {
+        defaultText = '로그인';
+      } else if (form && form.id.includes('signin')) {
+        defaultText = '회원가입';
+      } else {
+        defaultText = '완료';
+      }
+    }
+    submitBtn.textContent = defaultText;
+    submitBtn.disabled = false;
   }
 }
