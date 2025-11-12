@@ -83,7 +83,7 @@ function handleSubmit() {
   // TODO : api 연결 시도
 }
 
-// 로그인 페이지 초기환
+// 로그인 페이지 초기화
 function init() {
   console.log('로그인 페이지 불러오는 중');
   

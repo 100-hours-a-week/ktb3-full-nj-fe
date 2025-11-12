@@ -17,7 +17,7 @@
         <div class="header-profile" id="profileMenu">
           <span>👤</span>
           <div class="dropdown-menu" id="dropdownMenu">
-            <div class="dropdown-item" onclick="location.href='profile.html'">회원정보수정</div>
+            <div class="dropdown-item" onclick="location.href='profile_edit.html'">회원정보수정</div>
             <div class="dropdown-item" onclick="location.href='password.html'">비밀번호수정</div>
             <div class="dropdown-item" onclick="logout()">로그아웃</div>
           </div>
@@ -61,7 +61,7 @@
     // 로그아웃
     function logout() {
       if (confirm('로그아웃 하시겠습니까?')) {
-        console.log('🚪 로그아웃');
+        console.log('로그아웃');
         // TODO: localStorage에서 토큰 제거
         // removeFromStorage('token');
         location.href = 'login.html';

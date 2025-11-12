@@ -9,6 +9,7 @@
 </head>
 <body>
   <div class="page-container">
+    <!-- 헤더 -->
     <header class="header">
       <div class="header-content">
         <button class="header-back" onclick="history.back()">‹</button>
@@ -16,7 +17,7 @@
         <div class="header-profile" id="profileMenu">
           <span>👤</span>
           <div class="dropdown-menu" id="dropdownMenu">
-            <div class="dropdown-item" onclick="location.href='profile.html'">회원정보수정</div>
+            <div class="dropdown-item active">회원정보수정</div>
             <div class="dropdown-item" onclick="location.href='password.html'">비밀번호수정</div>
             <div class="dropdown-item" onclick="logout()">로그아웃</div>
           </div>
@@ -28,49 +29,63 @@
       <div class="profile-section">
         <h2 class="form-title">회원정보수정</h2>
         
+        <!-- 프로필 이미지 -->
         <div class="profile-image-wrapper">
-          <div class="profile-image" id="profileImage">
-            <span style="font-size: 48px;">👤</span>
+          <div class="profile-image-container" id="profileImageContainer">
+            <div class="profile-image" id="profileImage">
+              <span style="font-size: 48px;">👤</span>
+            </div>
+            <div class="profile-image-overlay">
+              <span class="overlay-text">변경</span>
+            </div>
           </div>
-          <div class="profile-image-edit" onclick="document.getElementById('profileInput').click()">
-            변경
-          </div>
-          <input type="file" id="profileInput" accept="image/*" style="display: none;">
+          <input type="file" id="profileUpload" accept="image/*" style="display: none;">
         </div>
         
+        <!-- 폼 -->
         <form id="profileForm">
+          <!-- 이메일 (읽기 전용) -->
           <div class="form-group">
-            <label class="form-label">이메일</label>
+            <label class="form-label required">이메일</label>
             <input 
               type="email" 
-              class="form-input" 
+              class="form-input"
+              id="emailDisplay"
+              style="background: #f5f5f5; cursor: not-allowed;"
               value="startupcode@gmail.com"
               readonly
-              style="background: #f5f5f5;"
             >
           </div>
           
+          <!-- 닉네임 -->
           <div class="form-group">
-            <label class="form-label">닉네임</label>
+            <label class="form-label required">닉네임</label>
             <input 
               type="text" 
               class="form-input" 
-              placeholder="닉네임"
-              value="스타트업코드"
+              placeholder="닉네임을 입력하세요"
+              id="nicknameInput"
+              maxlength="10"
             >
-            <span class="helper-text">* helper text</span>
+            <span class="helper-text"></span>
           </div>
           
+          <!-- 버튼들 -->
           <div class="profile-actions">
             <button type="submit" class="btn btn-primary">수정하기</button>
-            <button type="button" class="btn btn-secondary" onclick="location.href='main.html'">회원 탈퇴</button>
-            <button type="button" class="btn btn-primary" onclick="location.href='main.html'">수정완료</button>
+            <button type="button" class="btn btn-secondary">회원 탈퇴</button>
           </div>
         </form>
       </div>
     </div>
   </div>
   
+  <!-- 도메인별 구조: 스크립트 로드 -->
+  <script src="scripts/common/utils.js"></script>
+  <script src="scripts/common/validators.js"></script>
+  <script src="scripts/profile/edit.js"></script>
+  
+  <!-- 페이지 고유 스크립트 -->
   <script>
     // 프로필 메뉴 토글
     document.getElementById('profileMenu').addEventListener('click', function(e) {
@@ -78,32 +93,21 @@
       document.getElementById('dropdownMenu').classList.toggle('active');
     });
     
+    // 외부 클릭 시 메뉴 닫기
     document.addEventListener('click', function() {
       document.getElementById('dropdownMenu').classList.remove('active');
     });
     
-    // 프로필 이미지 변경
-    document.getElementById('profileInput').addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById('profileImage').innerHTML = `<img src="${e.target.result}" alt="프로필">`;
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-    
-    // 폼 제출
-    document.getElementById('profileForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      alert('회원정보가 수정되었습니다!');
-    });
-    
+    // 로그아웃
     function logout() {
-      if (confirm('로그아웃 하시겠습니까?')) {
-        location.href = 'index.html';
-      }
+      showModal(
+        '로그아웃 하시겠습니까?',
+        '',
+        function() {
+          console.log('🚪 로그아웃');
+          location.href = 'login.html';
+        }
+      );
     }
   </script>
 </body>

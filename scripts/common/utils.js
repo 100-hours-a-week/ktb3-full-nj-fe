@@ -97,6 +97,195 @@ function hideLoading() {
   }
 }
 
+/**
+ * 토스트 메시지 표시
+ * @param {string} message - 표시할 메시지
+ * @param {number} duration - 표시 시간 (ms, 기본: 3000)
+ * @param {string} type - 타입 ('success', 'error', 'info')
+ */
+function showToast(message, duration = 3000, type = 'success') {
+  // 기존 토스트 제거
+  const existingToast = document.getElementById('toast');
+  if (existingToast) {
+    existingToast.remove();
+  }
+  
+  // 토스트 생성
+  const toast = document.createElement('div');
+  toast.id = 'toast';
+  toast.textContent = message;
+  
+  // 스타일 적용
+  Object.assign(toast.style, {
+    position: 'fixed',
+    bottom: '40px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    padding: '16px 24px',
+    borderRadius: '8px',
+    fontSize: '15px',
+    fontWeight: '500',
+    color: '#fff',
+    zIndex: '10000',
+    opacity: '0',
+    transition: 'opacity 0.3s ease',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    minWidth: '200px',
+    textAlign: 'center'
+  });
+  
+  // 타입별 색상
+  const colors = {
+    success: '#7F6AEE',
+    error: '#ff4444',
+    info: '#555'
+  };
+  toast.style.background = colors[type] || colors.success;
+  
+  // DOM에 추가
+  document.body.appendChild(toast);
+  
+  // 애니메이션
+  setTimeout(() => {
+    toast.style.opacity = '1';
+  }, 10);
+  
+  // 자동 제거
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, duration);
+}
+
+/**
+ * 모달 표시
+ * @param {string} title - 모달 제목
+ * @param {string} message - 모달 메시지
+ * @param {Function} onConfirm - 확인 버튼 콜백
+ * @param {Function} onCancel - 취소 버튼 콜백
+ */
+function showModal(title, message, onConfirm, onCancel) {
+  // 기존 모달 제거
+  const existingModal = document.getElementById('customModal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+  
+  // 모달 오버레이
+  const overlay = document.createElement('div');
+  overlay.id = 'customModal';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  `;
+  
+  // 모달 박스
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    background: white;
+    border-radius: 12px;
+    padding: 32px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  `;
+  
+  // 제목
+  const titleEl = document.createElement('h3');
+  titleEl.textContent = title;
+  titleEl.style.cssText = `
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    text-align: center;
+  `;
+  
+  // 메시지
+  const messageEl = document.createElement('p');
+  messageEl.textContent = message;
+  messageEl.style.cssText = `
+    font-size: 15px;
+    color: #666;
+    margin: 0 0 24px 0;
+    text-align: center;
+    line-height: 1.5;
+  `;
+  
+  // 버튼 컨테이너
+  const buttonContainer = document.createElement('div');
+  buttonContainer.style.cssText = `
+    display: flex;
+    gap: 12px;
+  `;
+  
+  // 취소 버튼
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = '취소';
+  cancelBtn.style.cssText = `
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #333;
+    color: white;
+  `;
+  cancelBtn.onclick = () => {
+    overlay.remove();
+    if (onCancel) onCancel();
+  };
+  
+  // 확인 버튼
+  const confirmBtn = document.createElement('button');
+  confirmBtn.textContent = '확인';
+  confirmBtn.style.cssText = `
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #7F6AEE;
+    color: white;
+  `;
+  confirmBtn.onclick = () => {
+    overlay.remove();
+    if (onConfirm) onConfirm();
+  };
+  
+  // 조립
+  buttonContainer.appendChild(cancelBtn);
+  buttonContainer.appendChild(confirmBtn);
+  
+  modal.appendChild(titleEl);
+  modal.appendChild(messageEl);
+  modal.appendChild(buttonContainer);
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  
+  // 오버레이 클릭 시 닫기
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.remove();
+      if (onCancel) onCancel();
+    }
+  });
+}
+
 // 특정 요소에 포커스
 function focusElement(elementId) {
   const element = document.getElementById(elementId);
