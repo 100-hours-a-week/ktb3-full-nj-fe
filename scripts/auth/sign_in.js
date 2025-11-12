@@ -54,21 +54,22 @@ function setupEmailEvents() {
 
 // 비밀번호 입력 이벤트
 function setupPasswordEvents() {
-  console.log('회원가입 : 비밀번호 처리 중');
+  console.log('회원가입 : 비밀번호 입력 처리 중');
+  const passwordInput = document.getElementById('passwordInput');
 
-  document.getElementById('passwordInput').addEventListener('blur', function() {
+  passwordInput.addEventListener('blur', function() {
     validatePassword(this.value, formValidation);
     updateButtonState(formValidation);
   });
   
-  document.getElementById('passwordInput').addEventListener('input', function() {
+  passwordInput.addEventListener('input', function() {
     if (this.value) clearError('passwordInput');
   });
 }
 
 // 비밀번호 확인 입력 이벤트
 function setupPasswordConfirmEvents() {
-  console.log('회원가입 : 비밀번호 확인 처리 중');
+  console.log('회원가입 : 비밀번호 확인 입력 처리 중');
 
   document.getElementById('passwordConfirmInput').addEventListener('blur', function() {
     validatePasswordConfirm(this.value, formValidation);
@@ -82,7 +83,7 @@ function setupPasswordConfirmEvents() {
 
 // 닉네임 입력 이벤트
 function setupNicknameEvents() {
-  console.log('회원가입 : 닉네임 처리 중');
+  console.log('회원가입 : 닉네임 입력 처리 중');
 
   document.getElementById('nicknameInput').addEventListener('blur', function() {
     validateNickname(this.value.trim(), formValidation);

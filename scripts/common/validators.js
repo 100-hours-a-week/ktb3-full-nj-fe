@@ -1,14 +1,14 @@
 // 회원가입, 로그인 검증 로직
 
 // 이메일 검증 (영문, 숫자, @, . 만 허용) - 회원가입/로그인
-function validateEmail(email, validation, isSignin = true) {
+function validateEmail(email, validation, isLogin = false) {
   if (!email || email.trim() === '') {
     showError('emailInput', '*이메일을 입력해주세요.');
     validation.email = false;
     return false;
   }
 
-  if (isSignin) {
+  if (!isLogin) {
     // 회원가입: 영문, 숫자, @, . 만 허용
     const emailRegex = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+$/;
     if (!emailRegex.test(email)) {
@@ -30,24 +30,24 @@ function validateEmail(email, validation, isSignin = true) {
   return true;
 }
 
-// 비밀번호 검증 (8-20자, 대문자, 소문자, 숫자, 특수문자 각 1개 이상 체크) - 회원가입, 로그인
-function validatePassword(password, validation, isSignin = true) {
+// 비밀번호 검증 (8-20자, 대문자, 소문자, 숫자, 특수문자 각 1개 이상 체크) - 회원가입, 로그인, 비밀번호 수정
+function validatePassword(password, validation, isLogin = false) {
   if (!password) {
     showError('passwordInput', '*비밀번호를 입력해주세요');
     validation.password = false;
     return false;
   }
 
-  if (isSignin) {
-    // 회원가입: 복잡한 검증
+  if (!isLogin) {
+    // 회원가입 & 비밀번호 수정 : 복잡한 검증
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumber = /[0-9]/.test(password);
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
     
-    if ((password.length < 8 || password.length > 20) && (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar)) {
+    if ((password.length < 8 || password.length > 20) || (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar)) {
       showError('passwordInput', '*비밀번호는 8자 이상 20자 이하이며, 대문자, 소문자, 숫자, 특수문자를 각각 최소 1개 포함해야 합니다.');
-      formVavalidationlidation.password = false;
+      validation.password = false;
       return false;
     }
     

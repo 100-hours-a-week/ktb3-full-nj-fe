@@ -1,16 +1,14 @@
-// 회원 정보 수정 로직
+// 프로필 수정 로직
 
-// Mock 사용자 데이터
+// Mock 사용자 데이터 & 중복 닉네임 목록
 const mockUserData = {
   email: 'startupcode@gmail.com',
   nickname: '스타트업코드',
   profileImage: null
 };
-
-// Mock 중복 닉네임 목록
 const mockDuplicateNicknames = ['테스트', '관리자', 'admin', '운영자'];
 
-// 회원 정보 수정 폼 검증
+// 폼 검증 상태
 const formValidation = {
     profileImage: false,
     nickname: false

@@ -11,7 +11,7 @@ function setupEmailEvents() {
   console.log('로그인 : 이메일 처리 중');
   
   document.getElementById('emailInput').addEventListener('blur', function() {
-    validateEmail(this.value.trim(), formValidation, false);
+    validateEmail(this.value.trim(), formValidation, true);
     updateButtonState(formValidation);
   });
   
@@ -25,7 +25,7 @@ function setupPasswordEvents() {
   console.log('로그인 : 비밀번호 처리 중');
   
   document.getElementById('passwordInput').addEventListener('blur', function() {
-    validatePassword(this.value, formValidation, false);
+    validatePassword(this.value, formValidation, true);
     updateButtonState(formValidation);
   });
   
@@ -64,8 +64,8 @@ function handleSubmit() {
   
   // 최종 검증
   const validations = {
-    email: validateEmail(formData.email, formValidation, false),
-    password: validatePassword(formData.password, formValidation, false)
+    email: validateEmail(formData.email, formValidation, true),
+    password: validatePassword(formData.password, formValidation, true)
   };
   
   const allValid = Object.values(validations).every(v => v === true);
