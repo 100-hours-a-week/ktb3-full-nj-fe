@@ -8,7 +8,7 @@ const mockUserData = {
 };
 const mockDuplicateNicknames = ['테스트', '관리자', 'admin', '운영자'];
 
-// 폼 검증 상태
+// 프로필 수정 폼 검증 상태
 const formValidation = {
     profileImage: false,
     nickname: false

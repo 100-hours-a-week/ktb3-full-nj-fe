@@ -1,17 +1,28 @@
-// DOM 조작
+/**
+ * DOM 응용
+ */ 
 
 // 에러 메세지 표시
 function showError(inputId, message) {
   const input = document.getElementById(inputId);
-  if (!input) return;
+  if (!input) {
+    console.error(`showError: ${inputId} 요소를 찾을 수 없습니다`);
+    return;
+  }
   
   const helperText = input.nextElementSibling;
   
   input.style.borderColor = '#ff4444';
-  if (helperText) {
+  input.classList.add('error');
+  
+  if (helperText && helperText.classList.contains('helper-text')) {
     helperText.textContent = message;
+    helperText.classList.add('error');
     helperText.style.display = 'block';
+    helperText.style.color = '#e74c3c';
   }
+  
+  console.log(`❌ 에러 표시: ${inputId} - ${message}`);
 }
 
 // 에러 메세지 초기화
@@ -24,6 +35,7 @@ function clearError(inputId) {
   input.style.borderColor = '#e0e0e0';
   if (helperText) {
     helperText.style.display = 'none';
+    helperText.classList.remove('error');
   }
 }
 
@@ -60,7 +72,7 @@ function setLoadingState(isLoading, loadingText = '처리중...', defaultText = 
       const form = submitBtn.closest('form');
       if (form && form.id.includes('login')) {
         defaultText = '로그인';
-      } else if (form && form.id.includes('signin')) {
+      } else if (form && form.id.includes('signup')) {
         defaultText = '회원가입';
       } else {
         defaultText = '완료';
@@ -97,12 +109,7 @@ function hideLoading() {
   }
 }
 
-/**
- * 토스트 메시지 표시
- * @param {string} message - 표시할 메시지
- * @param {number} duration - 표시 시간 (ms, 기본: 3000)
- * @param {string} type - 타입 ('success', 'error', 'info')
- */
+// 토스트 메시지 표시
 function showToast(message, duration = 3000, type = 'success') {
   // 기존 토스트 제거
   const existingToast = document.getElementById('toast');
@@ -159,13 +166,7 @@ function showToast(message, duration = 3000, type = 'success') {
   }, duration);
 }
 
-/**
- * 모달 표시
- * @param {string} title - 모달 제목
- * @param {string} message - 모달 메시지
- * @param {Function} onConfirm - 확인 버튼 콜백
- * @param {Function} onCancel - 취소 버튼 콜백
- */
+// 모달 표시
 function showModal(title, message, onConfirm, onCancel) {
   // 기존 모달 제거
   const existingModal = document.getElementById('customModal');

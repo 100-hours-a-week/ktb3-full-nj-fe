@@ -9,13 +9,14 @@ const formValidation = {
 // 이메일 입력 이벤트
 function setupEmailEvents() {
   console.log('로그인 : 이메일 처리 중');
+  const emailInput = document.getElementById('emailInput');
   
-  document.getElementById('emailInput').addEventListener('blur', function() {
+  emailInput.addEventListener('blur', function() {
     validateEmail(this.value.trim(), formValidation, true);
     updateButtonState(formValidation);
   });
   
-  document.getElementById('emailInput').addEventListener('input', function() {
+  emailInput.addEventListener('input', function() {
     if (this.value) clearError('emailInput');
   });
 }
@@ -23,64 +24,45 @@ function setupEmailEvents() {
 // 비밀번호 입력 이벤트
 function setupPasswordEvents() {
   console.log('로그인 : 비밀번호 처리 중');
+  const passwordInput = document.getElementById('passwordInput');
   
-  document.getElementById('passwordInput').addEventListener('blur', function() {
+  passwordInput.addEventListener('blur', function() {
     validatePassword(this.value, formValidation, true);
     updateButtonState(formValidation);
   });
   
-  document.getElementById('passwordInput').addEventListener('input', function() {
+  passwordInput.addEventListener('input', function() {
     if (this.value) clearError('passwordInput');
   });
-
-  // Enter 키로 로그인
-  // document.getElementById('passwordInput').addEventListener('keypress', function(e) { 
-  //   if (e.key === 'Enter') {
-  //     e.preventDefault();
-  //     document.getElementById('loginForm').dispatchEvent(new Event('submit'));
-  //   }
-  // });
 }
 
-// 로그인 폼 제출 입력 이벤트
-function setupFormSubmitEvent() {
-  console.log('로그인 : 폼 처리 중');
+// '로그인' 버튼 이벤트
+function setupLoginBtnEvents() {
+  console.log('로그인 시도');
   
   document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    handleSubmit();
+    
+    // 데이터 수집
+    const formData = {
+      email: document.getElementById('emailInput').value.trim(),
+      password: document.getElementById('passwordInput').value
+    };
+    
+    // 최종 검증
+    const isValid = 
+      validateEmail(formData.email, formValidation, true) &&
+      validatePassword(formData.password, formValidation, true);
+
+    if (!isValid) {
+      console.log('검증 실패');
+      return;
+    }
+    
+    // TODO : api 연결 시도
+
+    navigateTo('main.html', 1000);
   });
-}
-
-// 로그인 진행
-function handleSubmit() {
-  console.log('로그인 시도');
-  
-  // 데이터 수집
-  const formData = {
-    email: document.getElementById('emailInput').value.trim(),
-    password: document.getElementById('passwordInput').value
-  };
-  
-  // 최종 검증
-  const validations = {
-    email: validateEmail(formData.email, formValidation, true),
-    password: validatePassword(formData.password, formValidation, true)
-  };
-  
-  const allValid = Object.values(validations).every(v => v === true);
-  if (!allValid) {
-    console.log('검증 실패');
-    return;
-  }
-  
-  console.log('로그인 : 모든 검증 통과');
-
-  console.log('로그인 성공 시 → main.html로 이동');
-
-  alert('검증 완료!');
-
-  // TODO : api 연결 시도
 }
 
 // 로그인 페이지 초기화
@@ -89,14 +71,13 @@ function init() {
   
   setupEmailEvents();
   setupPasswordEvents();
-  setupFormSubmitEvent();
+  setupLoginBtnEvents();
   
   updateButtonState(formValidation);
   
   console.log('로그인 페이지 로딩 완료!');
 }
 
-// DOM 로드 완료 후 초기화
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {

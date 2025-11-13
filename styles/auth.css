@@ -1,4 +1,7 @@
-/* 로그인/회원가입 공통 스타일 */
+/* ========================================
+   로그인/회원가입 전용 스타일
+======================================== */
+
 .auth-container {
   min-height: 100vh;
   display: flex;
@@ -19,7 +22,7 @@
 
 .auth-title {
   text-align: center;
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 600;
   margin-bottom: 32px;
   color: #333;
@@ -34,15 +37,18 @@
   margin-top: 20px;
 }
 
-/* 회원가입 전용 스타일 */
+/* ========================================
+   회원가입 프로필 이미지
+======================================== */
+
 .profile-upload-wrapper {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 8px;
 }
 
 .profile-upload {
-  width: 120px;
-  height: 120px;
+  width: 150px;
+  height: 150px;
   margin: 0 auto;
   border-radius: 50%;
   background: #f0f0f0;
@@ -51,7 +57,6 @@
   justify-content: center;
   cursor: pointer;
   overflow: hidden;
-  border: 3px dashed #d0d0d0;
   transition: all 0.3s;
 }
 
@@ -64,6 +69,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
 }
 
 .profile-upload-icon {
@@ -78,13 +84,10 @@
   color: #666;
 }
 
-.profile-upload-helper {
-  color: #ff4444;
-  font-size: 12px;
-  margin-top: 8px;
-}
+/* ========================================
+   반응형
+======================================== */
 
-/* 반응형 */
 @media (max-width: 480px) {
   .auth-box {
     padding: 32px 24px;
