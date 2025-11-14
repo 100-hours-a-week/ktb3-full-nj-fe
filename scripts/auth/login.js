@@ -83,9 +83,9 @@ async function handleLogin(formData) {
       storeToken(response.data.accessToken, response.data.refreshToken);
     }
     
-    console.error('로그인 성공!');
+    console.log('로그인 성공!');
     showToast(response.message);
-    //navigateTo('main.html', 5000);
+    navigateTo('main.html', 2000);
 
   } catch (error) {
     console.error('로그인 실패:', error.message);

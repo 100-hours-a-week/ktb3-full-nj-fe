@@ -8,9 +8,13 @@ async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   
   // 기본 헤더 설정
-  const defaultHeaders = {
-    'Content-Type': 'application/json',
-  };
+  const defaultHeaders = {};
+  
+  // FormData가 아닐 때만 Content-Type 추가
+  // FormData는 브라우저가 자동으로 multipart/form-data + boundary 설정
+  if (!(options.body instanceof FormData)) {
+    defaultHeaders['Content-Type'] = 'application/json';
+  }
   
   // 토큰이 있으면 Authorization 헤더 추가
   const token = getAccessToken();
@@ -29,7 +33,19 @@ async function apiRequest(endpoint, options = {}) {
   
   try {
     console.log(`➡️ API 요청: ${options.method || 'GET'} ${url}`);
-    console.log('➡️ 요청 데이터:', options.body ? JSON.parse(options.body) : null);
+    
+    // FormData는 로그로 보기 어려우니 타입만 표시
+    if (options.body instanceof FormData) {
+      console.log('➡️ 요청 데이터: FormData');
+      for (let [key, value] of options.body.entries()) {
+        console.log(`   - ${key}:`, value instanceof File ? `File(${value.name})` : value);
+      }
+    } else if (options.body) {
+      // JSON일 때만 parse
+      console.log('➡️ 요청 데이터:', JSON.parse(options.body));
+    } else {
+      console.log('➡️ 요청 데이터: 없음');
+    }
     
     const response = await fetch(url, requestOptions);
     const data = await response.json();
@@ -48,7 +64,7 @@ async function apiRequest(endpoint, options = {}) {
     }
     
     // 네트워크 오류 등
-    console.error('❌ API 요청 실패:', error);
+    console.error('API 요청 실패:', error);
     throw new ApiError(0, '네트워크 연결을 확인해주세요');
   }
 }
