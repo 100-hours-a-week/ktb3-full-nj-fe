@@ -9,7 +9,7 @@ let allPosts = [];
 // 게시글 카드 HTML 생성
 function createPostCardHTML(post) {
   return `
-    <article class="post-card" data-id="${post.id}">
+    <article class="post-card" data-id="${post.postId}">
       <h3 class="post-title">${truncateTitle(post.title)}</h3>
       <div class="post-stats">
         <div class="stat-item">
@@ -26,7 +26,7 @@ function createPostCardHTML(post) {
       <div class="post-footer">
         <div class="post-author">
           <span class="author-avatar">👤</span>
-          <span class="author-name">${post.author || post.authorName || '익명'}</span>
+          <span class="author-name">${post.authorName || '익명'}</span>
         </div>
       </div>
     </article>
@@ -36,6 +36,18 @@ function createPostCardHTML(post) {
 // 게시글 목록 렌더링
 function renderPosts(posts) {
   console.log('게시글 목록 : 렌더링 중 -', posts.length, '개');
+
+  // ✅ 디버깅 추가
+  console.log('=== 게시글 데이터 구조 확인 ===');
+  if (posts.length > 0) {
+    console.log('첫 번째 게시글 전체:', posts[0]);
+    console.log('ID 필드 확인:', {
+      'post.id': posts[0].id,
+      'post.postId': posts[0].postId,
+      'post.no': posts[0].no,
+      '모든 키': Object.keys(posts[0])
+    });
+  }
   
   posts.forEach(post => {
     const cardHTML = createPostCardHTML(post);
@@ -56,13 +68,12 @@ function setupCardClickEvents() {
     const card = e.target.closest('.post-card');
     if (card) {
       const postId = card.dataset.id;
-      console.log('게시글 클릭:', postId);
       
-      localStorage.setItem('selectedPostId', postId);
+      console.log('🔍 클릭한 게시글 ID:', postId);
+      console.log('🔍 카드 data-id:', card.dataset.id);
       
-      setTimeout(() => {
-        navigateTo('post_detail.html');
-      }, 0);
+      // ✅ 주석 해제!
+      navigateTo(`post_detail.html?id=${postId}`);
     }
   });
   

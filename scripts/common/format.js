@@ -2,8 +2,12 @@
 
 // 숫자를 K 단위로 포맷팅 (좋아요수, 댓글수, 조회수)
 function formatNumber(num) {
-  if (num >= 1000) {
+  if (num >= 100000) {
     return Math.floor(num / 1000) + 'k';
+  } else if (num >= 10000) {
+    return Math.floor(num / 1000) + 'k';
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace('.0', '') + 'k';
   }
   return num.toString();
 }
