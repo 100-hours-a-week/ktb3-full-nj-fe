@@ -38,11 +38,11 @@ function clearError(inputId) {
 }
 
 // 버튼 활성화/비활성화 상태 업데이트
-function updateButtonState(formValidation) {
+function updateButtonState(formValidation, isValid = true) {
   const submitBtn = document.querySelector('button[type="submit"]');
   if (!submitBtn) return;
 
-  const allValid = Object.values(formValidation).every(v => v === true);
+  const allValid = Object.values(formValidation).every(v => v === true) && isValid;
   
   if (allValid) {
     submitBtn.disabled = false;

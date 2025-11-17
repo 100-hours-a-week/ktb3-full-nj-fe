@@ -1,42 +1,40 @@
-/**
- * 비밀번호 수정
- */ 
+// 비밀번호 수정
 
-// 폼 검증 상태
-const validation = {
+// 비밀번호 수정 폼 검증
+const formValidation = {
   password: false,
   passwordConfirm: false
 };
 
-// 비밀번호 입력 이벤트
+// 비밀번호 수정 이벤트
 function setupPasswordEvents() {
-  console.log('비밀번호 수정 : 비밀번호 입력 처리 중');
+  console.log('비밀번호 수정 : 비밀번호 처리 중');
   const passwordInput = document.getElementById('passwordInput');
   
   passwordInput.addEventListener('blur', function() {
-    validatePassword(this.value, validation);
-    updateButtonState(validation);
+    validatePassword(this.value, formValidation);
+    updateButtonState(formValidation);
   });
   
   passwordInput.addEventListener('input', function() {
     if (this.value) clearError('passwordInput');
-    updateButtonState(validation);
+    updateButtonState(formValidation);
   });
 }
 
-// 비밀번호 확인 입력 이벤트
+// 비밀번호 확인 수정 이벤트
 function setupPasswordConfirmEvents() {
-  console.log('비밀번호 수정 : 비밀번호 확인 입력 처리 중');
+  console.log('비밀번호 수정 : 비밀번호 확인 처리 중');
   const passwordConfirmInput = document.getElementById('passwordConfirmInput');
   
   passwordConfirmInput.addEventListener('blur', function() {
-    validatePasswordConfirm(this.value, validation);
-    updateButtonState(validation);
+    validatePasswordConfirm(this.value, formValidation);
+    updateButtonState(formValidation);
   });
   
   passwordConfirmInput.addEventListener('input', function() {
     if (this.value) clearError('passwordConfirmInput');
-    updateButtonState(validation);
+    updateButtonState(formValidation);
   });
 }
 
@@ -51,40 +49,69 @@ function setupSubmitEvent() {
     const passwordConfirm = document.getElementById('passwordConfirmInput').value;
     
     // 검증
-    if (!validatePassword(password, validation)) {
+    if (!validatePassword(password, formValidation)) {
       console.log('검증 실패: 비밀번호');
       return;
     }
-    if (!validatePasswordConfirm(passwordConfirm, validation)) {
+    if (!validatePasswordConfirm(passwordConfirm, formValidation)) {
       console.log('검증 실패: 비밀번호 확인');
       return;
     }
     
     // 로딩 상태
     const btn = e.target.querySelector('button[type="submit"]');
+    const originalText = btn.textContent;
     btn.disabled = true;
     btn.textContent = '수정 중...';
     
-    // Phase 1: Mock 처리
-    setTimeout(() => {
-      btn.disabled = false;
-      btn.textContent = '수정하기';
+    try {
+      // API 호출
+      const response = await updatePassword(password);
+      
+      console.log('비밀번호 변경 완료!', response);
       
       // 성공 토스트
-      showToast('수정 완료');
+      showToast(response.message || '비밀번호가 변경되었습니다');
       
-      // 2초 후 메인 페이지로
-      setTimeout(() => {
-        navigateTo('main.html');
-      }, 2000);
+      // 입력 필드 초기화
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordConfirmInput').value = '';
+      formValidation.password = false;
+      formValidation.passwordConfirm = false;
       
-      // Phase 2: 실제 API 호출
-      // const result = await fetch('/api/user/password', {
-      //   method: 'PATCH',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ password })
-      // });
-    }, 1000);
+      // 2초 후 회원정보 수정 페이지로
+      navigateTo('main.html', 2000);
+      
+    } catch (error) {
+      console.error('비밀번호 변경 실패:', error);
+      if (error.status === 400) {
+        showError('passwordForm', error.message || '비밀번호 형식을 확인해주세요');
+      } else if (error.status === 401) {
+        showToast('로그인이 필요합니다');
+        setTimeout(() => navigateTo('login.html'), 1500);
+      } else if (error.status === 403) {
+        showError('passwordForm', '현재 비밀번호가 일치하지 않습니다');
+      } else {
+        showError('passwordForm', '비밀번호 변경 중 오류가 발생했습니다');
+      }
+      
+    } finally {
+      // 로딩 종료
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  });
+}
+
+// 비밀번호 변경
+async function updatePassword(newPassword) {
+  console.log('비밀번호 변경 API 호출');
+  
+  return await apiRequest('/users/password', {
+    method: 'PATCH',
+    body: JSON.stringify({
+      password: newPassword
+    })
   });
 }
 
@@ -95,6 +122,8 @@ function init() {
   setupPasswordEvents();
   setupPasswordConfirmEvents();
   setupSubmitEvent();
+
+  updateButtonState(formValidation);
   
   console.log('비밀번호 수정 페이지 로딩 완료!');
 }

@@ -104,7 +104,6 @@ async function getMyInfo() {
     method: 'GET'
   });
 }
-
 /*
 // 닉네임 중복 체크
 async function checkNickname(nickname) {

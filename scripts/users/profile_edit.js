@@ -8,6 +8,9 @@ const formValidation = {
 // 현재 사용자 정보 (로드된 데이터 저장)
 let currentUserData = null;
 
+// 변경 여부 추적
+let hasChanges = false;
+
 /*
 // 닉네임 중복 체크
 async function checkNicknameDuplicate(nickname) {
@@ -38,6 +41,30 @@ async function checkNicknameDuplicate(nickname) {
   }
 }*/
 
+// 변경 여부 체크 함수
+function checkForChanges() {
+  if (!currentUserData) {
+    hasChanges = false;
+    updateButtonState(formValidation, hasChanges);
+    return;
+  }
+  
+  const currentNickname = document.getElementById('nicknameInput').value.trim();
+  const nicknameChanged = currentNickname !== currentUserData.nickname;
+  const imageChanged = profileImage !== null;
+  
+  hasChanges = (nicknameChanged || imageChanged) && formValidation.nickname;
+  
+  console.log('변경 감지:', {
+    nicknameChanged,
+    imageChanged,
+    hasChanges,
+    nicknameValid: formValidation.nickname
+  });
+  
+  updateButtonState(formValidation, hasChanges);
+}
+
 // 프로필 이미지 수정 이벤트
 let profileImage = null;
 function setupProfileImageEvent() {
@@ -61,6 +88,7 @@ function setupProfileImageEvent() {
         }
       };
       reader.readAsDataURL(file);
+      checkForChanges();
     }
   });
 }
@@ -73,10 +101,12 @@ function setupNicknameEvents() {
   nicknameInput.addEventListener('blur', function() {
     validateNickname(this.value.trim(),formValidation);
     // checkNicknameDuplicate(this.value.trim());
+    checkForChanges();
   });
 
   nicknameInput.addEventListener('input', function() {
     if (this.value) clearError('nicknameInput');
+    checkForChanges();
   });
 }
 
@@ -86,6 +116,11 @@ function setupEditButtonEvent() {
   
   document.getElementById('profileForm').addEventListener('submit', async function(e) {
     e.preventDefault();
+
+    if (!hasChanges) {
+      showToast('변경된 내용이 없습니다');
+      return;
+    }
     
     const nickname = document.getElementById('nicknameInput').value.trim();
     if (!validateNickname(nickname, formValidation)) {
@@ -111,28 +146,27 @@ function setupEditButtonEvent() {
     try {
       // API 호출
       const updateData = {
-        nickname: nickname,
-        profileImage: profileImage  // File 객체 또는 null
+        nickname: nickname !== currentUserData.nickname ? nickname : null,
+        profileImage: profileImage
       };
       
       const response = await updateUserInfo(updateData);
       
-      console.log('✅ 수정 완료!', response);
+      console.log('수정 완료!', response);
       
       // 성공 토스트
       showToast(response.message || '수정 완료');
       
       // 사용자 정보 업데이트
       currentUserData.nickname = nickname;
-      if (profileImage) {
-        // 응답에 새 이미지 경로가 있다면 업데이트
-        if (response.data && response.data.profileImage) {
-          currentUserData.profileImage = response.data.profileImage;
-        }
+      if (profileImage && response.data && response.data.profileImage) {
+        currentUserData.profileImage = response.data.profileImage;
       }
       
-      // 프로필 이미지 초기화
       profileImage = null;
+
+      hasChanges = false;
+      updateButtonState(formValidation, hasChanges);
       
     } catch (error) {      
       if (error.status === 409) {
@@ -150,6 +184,7 @@ function setupEditButtonEvent() {
       // 로딩 종료
       btn.disabled = false;
       btn.textContent = originalText;
+      checkForChanges();
     }
   });
 }
@@ -291,6 +326,9 @@ async function init() {
   setupNicknameEvents();
   setupEditButtonEvent();
   setupDeleteAccountEvent();
+
+  hasChanges = false;
+  updateButtonState(formValidation, hasChanges);
   
   console.log('회원정보 수정 페이지 로딩 완료!');
 }
