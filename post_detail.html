@@ -9,6 +9,12 @@
   <link rel="stylesheet" href="styles/detail.css">
 </head>
 <body>
+  <div id="globalLoading">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <div class="loading-text">로딩 중...</div>
+    </div>
+  </div>
   <div class="page-container">
     <!-- 헤더 -->
     <header class="header">
@@ -17,9 +23,7 @@
         <h1 class="header-title">아무 말 대잔치</h1>
         <div class="header-profile" id="profileMenu">
           <!-- 프로필 이미지 영역 -->
-          <span class="profile-avatar">
-            <img src="/images/default-profile.png" alt="프로필">
-          </span>
+           <span class="profile-avatar"></span>
           <!-- 드롭다운 메뉴 -->
           <div class="dropdown-menu" id="dropdownMenu">
             <div class="dropdown-item" onclick="location.href='profile_edit.html'">회원정보수정</div>

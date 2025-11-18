@@ -1,5 +1,6 @@
 //DOM 응용
 
+//=========에러 메세지=========
 // 에러 메세지 표시
 function showError(inputId, message) {
   const input = document.getElementById(inputId);
@@ -22,7 +23,6 @@ function showError(inputId, message) {
   
   console.log(`❌ 에러 표시: ${inputId} - ${message}`);
 }
-
 // 에러 메세지 초기화
 function clearError(inputId) {
   const input = document.getElementById(inputId);
@@ -37,6 +37,7 @@ function clearError(inputId) {
   }
 }
 
+//=========버튼=========
 // 버튼 활성화/비활성화 상태 업데이트
 function updateButtonState(formValidation, isValid = true) {
   const submitBtn = document.querySelector('button[type="submit"]');
@@ -55,6 +56,7 @@ function updateButtonState(formValidation, isValid = true) {
   }
 }
 
+//=========로딩 상태=========
 // 로딩 상태 표시 (버튼)
 function setLoadingState(isLoading, text = '처리중...') {
   const submitBtn = document.querySelector('button[type="submit"]');
@@ -72,33 +74,30 @@ function setLoadingState(isLoading, text = '처리중...') {
     submitBtn.disabled = false;
   }
 }
-
 // 로딩 인디케이터 표시 (컨테이너)
-function showLoading(containerId = 'postsContainer', message = '로딩 중...') {
-  const container = document.getElementById(containerId);
-  if (!container) return;
+function showLoading(message = '로딩 중...') {
+  const loading = document.getElementById('globalLoading');
+  if (!loading) {
+    console.warn('globalLoading 요소를 찾을 수 없습니다');
+    return;
+  }
   
-  if (document.getElementById('loading')) return;
+  const loadingText = loading.querySelector('.loading-text');
+  if (loadingText) {
+    loadingText.textContent = message;
+  }
   
-  const loader = document.createElement('div');
-  loader.id = 'loading';
-  loader.style.textAlign = 'center';
-  loader.style.padding = '40px';
-  loader.style.color = '#999';
-  loader.style.fontSize = '15px';
-  loader.textContent = message;
-  
-  container.appendChild(loader);
+  loading.classList.add('active');
 }
-
 // 로딩 인디케이터 숨기기
 function hideLoading() {
-  const loader = document.getElementById('loading');
-  if (loader) {
-    loader.remove();
+  const loading = document.getElementById('globalLoading');
+  if (loading) {
+    loading.classList.remove('active');
   }
 }
 
+//=========토스트 메시지&모달&포커싱=========
 // 토스트 메시지 표시
 function showToast(message, duration = 3000, type = 'success') {
   // 기존 토스트 제거
@@ -155,7 +154,6 @@ function showToast(message, duration = 3000, type = 'success') {
     }, 300);
   }, duration);
 }
-
 // 모달 표시
 function showModal(title, message, onConfirm, onCancel) {
   // 기존 모달 제거
@@ -276,7 +274,6 @@ function showModal(title, message, onConfirm, onCancel) {
     }
   });
 }
-
 // 특정 요소에 포커스
 function focusElement(elementId) {
   const element = document.getElementById(elementId);
@@ -285,6 +282,7 @@ function focusElement(elementId) {
   }
 }
 
+//=========페이지 이동=========
 // 페이지 이동
 function navigateTo(url, delay = 0) {
   setTimeout(() => {
@@ -292,6 +290,7 @@ function navigateTo(url, delay = 0) {
   }, delay);
 }
 
+//=========localStorage=========
 // localStorage에 데이터 저장
 function saveToStorage(key, value) {
   try {
@@ -305,7 +304,6 @@ function saveToStorage(key, value) {
     return false;
   }
 }
-
 // localStorage에서 데이터 가져오기
 function getFromStorage(key, defaultValue = null) {
   try {
@@ -322,7 +320,6 @@ function getFromStorage(key, defaultValue = null) {
     return defaultValue;
   }
 }
-
 // localStorage에서 데이터 삭제
 function removeFromStorage(key) {
   try {

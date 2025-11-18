@@ -180,7 +180,6 @@ function setupSubmitEvent() {
       }
       
     } finally {
-      // 로딩 종료
       btn.disabled = false;
       btn.textContent = originalText;
     }
@@ -189,12 +188,12 @@ function setupSubmitEvent() {
 
 // 게시글 작성
 async function createPost(postData) {
-  console.log('📝 게시글 작성 API 호출');
+  console.log('게시글 작성 API 호출');
   
   // FormData 구성
   const formData = new FormData();
   
-  formData.append('scope', postData.scope || 'PUBLIC');  // 기본값: PUBLIC
+  formData.append('scope', postData.scope || 'PUBLIC');
   
   if (postData.clubId) {
     formData.append('clubId', postData.clubId);

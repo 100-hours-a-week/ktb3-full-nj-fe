@@ -11,36 +11,6 @@ let currentUserData = null;
 // 변경 여부 추적
 let hasChanges = false;
 
-/*
-// 닉네임 중복 체크
-async function checkNicknameDuplicate(nickname) {
-  console.log('회원정보 수정 : 중복 체크 -> ', nickname);
-  
-  // 현재 닉네임과 같으면 중복 체크 안 함
-  if (currentUserData && nickname === currentUserData.nickname) {
-    formValidation.nickname = true;
-    return true;
-  }
-  
-  try {
-    const isAvailable = await checkNickname(nickname);
-    
-    if (!isAvailable) {
-      showError('nicknameInput', '*중복된 닉네임 입니다');
-      formValidation.nickname = false;
-      return false;
-    }
-    
-    formValidation.nickname = true;
-    return true;
-    
-  } catch (error) {
-    console.error('닉네임 중복 체크 실패:', error);
-    showError('nicknameInput', '중복 체크 중 오류가 발생했습니다');
-    return false;
-  }
-}*/
-
 // 변경 여부 체크 함수
 function checkForChanges() {
   if (!currentUserData) {

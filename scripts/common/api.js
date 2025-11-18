@@ -29,18 +29,18 @@ async function apiRequest(endpoint, options = {}) {
   console.log('➡️ 요청 데이터:', config.body || '없음');
   
   try {
-    // ✅ fetch 호출!
+    // fetch 호출
     const response = await fetch(url, config);
     
     console.log(` ${config.method} ${url}`, response.status, response.statusText);
     
-    // ✅ 204 No Content 처리
+    // 204 No Content 처리
     if (response.status === 204) {
       console.log('➡️ 응답: 204 No Content (응답 바디 없음)');
       return { success: true };
     }
     
-    // ✅ 응답 바디가 있는지 확인
+    // 응답 바디 있는지 확인
     const contentType = response.headers.get('content-type');
     let data;
     
@@ -101,8 +101,9 @@ function getAccessToken() {
 function getRefreshToken() {
   return localStorage.getItem('refreshToken');
 }
-function removeAccessToken() {
+function removeToken() {
   localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
 }
 
 // 로그인 상태 확인
@@ -116,29 +117,6 @@ async function getMyInfo() {
     method: 'GET'
   });
 }
-/*
-// 닉네임 중복 체크
-async function checkNickname(nickname) {
-  console.log('닉네임 중복 체크:', nickname);
-  
-  try {
-    const response = await apiRequest(`/users/check-nickname?nickname=${encodeURIComponent(nickname)}`, {
-      method: 'GET'
-    });
-    
-    // 백엔드 응답 형식에 따라 조정 필요
-    // 예: { available: true } 또는 { isDuplicate: false }
-    return response.data.available || !response.data.isDuplicate;
-    
-  } catch (error) {
-    if (error.status === 409) {
-      // 중복
-      return false;
-    }
-    throw error;
-  }
-}
-*/
 
 // 게시글 목록 조회
 async function getPosts(page = 1, limit = 10) {
@@ -147,11 +125,29 @@ async function getPosts(page = 1, limit = 10) {
     method: 'GET'
   });
 }
-// 게시글 상세 조회 ㅇ
+// 게시글 상세 조회
 async function getPost(postId) {
   console.log('게시글 상세 조회 API 호출', postId);
   return await apiRequest(`/posts/${postId}`, {
     method: 'GET'
+  });
+}
+// 게시글 수정
+async function updatePost(postId, formData) {
+  console.log('게시글 수정 API 호출:', postId);
+  
+  return await apiRequest(`/posts/${postId}`, {
+    method: 'PATCH',
+    body: formData,
+    isFormData: true
+  });
+}
+// 게시글 삭제
+async function deletePost(postId) {
+  console.log('게시글 삭제 API 호출:', postId);
+  
+  return await apiRequest(`/posts/${postId}`, {
+    method: 'DELETE',
   });
 }
 
