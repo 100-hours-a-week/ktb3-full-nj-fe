@@ -382,7 +382,7 @@ async function handleUpdatePost(form, title, content) {
     showToast('게시글이 수정되었습니다');
     
     setTimeout(() => {
-      navigateTo(`post_detail.html?id=${postData.postId}`);
+      replaceLocation(`post_detail.html?id=${postData.postId}`);
     }, 1500);
     
   } catch (error) {
@@ -403,13 +403,35 @@ function createUpdateFormData(title, content) {
   formData.append('title', title);
   formData.append('content', content);
   
+  // 이미지가 변경되었는지 확인
+  const imagesChanged = checkImageChanges();
+  
+  if (imagesChanged) {
+    // 이미지 변경이 있으면 keepImages 전송
+    const keepImagePaths = getExistingImagePaths();
+    
+    if (keepImagePaths.length > 0) {
+      // 유지할 이미지가 있으면 전송
+      keepImagePaths.forEach(path => {
+        formData.append('keepImages', path);
+      });
+      console.log('유지할 이미지:', keepImagePaths.length, '개');
+      console.log('경로:', keepImagePaths);
+    } else {
+      // 모든 이미지 삭제 (빈 배열 전송)
+      formData.append('keepImages', '');
+      console.log('모든 기존 이미지 삭제');
+    }
+  }
+  // else: keepImages를 전송하지 않음 (null) = 이미지 변경 없음
+  
   // 새 이미지 추가
   const validNewImages = getValidImageFiles();
   if (validNewImages.length > 0) {
     validNewImages.forEach(file => {
       formData.append('images', file);
     });
-    console.log('📷 새 이미지:', validNewImages.length, '개');
+    console.log('새 이미지:', validNewImages.length, '개');
   }
   
   return formData;

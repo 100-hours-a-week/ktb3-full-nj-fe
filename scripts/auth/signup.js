@@ -61,6 +61,7 @@ function setupPasswordEvents() {
   
   passwordInput.addEventListener('input', function() {
     if (this.value) clearError('passwordInput');
+    updateButtonState(formValidation);
   });
 }
 
@@ -76,6 +77,7 @@ function setupPasswordConfirmEvents() {
   
   passwordConfirmInput.addEventListener('input', function() {
     if (this.value) clearError('passwordConfirmInput');
+    updateButtonState(formValidation);
   });
 }
 

@@ -209,9 +209,7 @@ function setupDeleteAccountEvent() {
             console.log('회원 탈퇴 완료', response);
             
             // 토큰 삭제
-            removeAccessToken();
-            localStorage.removeItem('refreshToken');
-            
+            removeToken();
             showToast(response.message || '회원 탈퇴가 완료되었습니다');
             
             // 2초 후 로그인 페이지로

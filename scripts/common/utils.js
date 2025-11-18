@@ -289,6 +289,10 @@ function navigateTo(url, delay = 0) {
     window.location.href = url;
   }, delay);
 }
+// 페이지 이동 (히스토리 교체)
+function replaceLocation(url) {
+  window.location.replace(url);
+}
 
 //=========localStorage=========
 // localStorage에 데이터 저장
