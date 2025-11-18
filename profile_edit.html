@@ -15,10 +15,14 @@
         <button class="header-back" onclick="history.back()">‹</button>
         <h1 class="header-title">아무 말 대잔치</h1>
         <div class="header-profile" id="profileMenu">
-          <span>👤</span>
+          <!-- 프로필 이미지 영역 -->
+          <span class="profile-avatar">
+            <img src="/images/default-profile.png" alt="프로필">
+          </span>
+          <!-- 드롭다운 메뉴 -->
           <div class="dropdown-menu" id="dropdownMenu">
-            <div class="dropdown-item active">회원정보수정</div>
-            <div class="dropdown-item" onclick="location.href='password_edit.html'">비밀번호수정</div>
+            <div class="dropdown-item" onclick="location.href='profile_edit.html'">회원정보수정</div>
+            <div class="dropdown-item active">비밀번호수정</div>
             <div class="dropdown-item" onclick="logout()">로그아웃</div>
           </div>
         </div>
@@ -33,7 +37,7 @@
         <div class="profile-image-wrapper">
           <div class="profile-image-container" id="profileImageContainer">
             <div class="profile-image" id="profileImage">
-              <span style="font-size: 48px;">👤</span>
+              <img src="/images/default-profile.png" alt="프로필">
             </div>
             <div class="profile-image-overlay">
               <span class="overlay-text">변경</span>
@@ -85,31 +89,16 @@
   <script src="scripts/common/utils.js"></script>
   <script src="scripts/common/validators.js"></script>
   <script src="scripts/common/api.js"></script>
+  <script src="scripts/common/header.js"></script> 
   <script src="scripts/users/profile_edit.js"></script>
   
-  <!-- 페이지 고유 스크립트 -->
+  <!-- 페이지 초기화 -->
   <script>
-    // 프로필 메뉴 토글
-    document.getElementById('profileMenu').addEventListener('click', function(e) {
-      e.stopPropagation();
-      document.getElementById('dropdownMenu').classList.toggle('active');
-    });
-    
-    // 외부 클릭 시 메뉴 닫기
-    document.addEventListener('click', function() {
-      document.getElementById('dropdownMenu').classList.remove('active');
-    });
-    
-    // 로그아웃
-    function logout() {
-      showModal(
-        '로그아웃 하시겠습니까?',
-        '',
-        function() {
-          console.log('로그아웃');
-          location.href = 'login.html';
-        }
-      );
+    // 헤더 초기화
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initHeader);
+    } else {
+      initHeader();
     }
   </script>
 </body>

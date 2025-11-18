@@ -146,7 +146,7 @@ function setupEditButtonEvent() {
     try {
       // API 호출
       const updateData = {
-        nickname: nickname !== currentUserData.nickname ? nickname : null,
+        nickname: nickname,
         profileImage: profileImage
       };
       
@@ -252,9 +252,7 @@ async function updateUserInfo(updateData) {
   // FormData 구성
   const formData = new FormData();
   
-  if (updateData.nickname) {
-    formData.append('nickname', updateData.nickname);
-  }
+  formData.append('nickname', updateData.nickname);
   
   // 프로필 이미지가 있을 때만 추가
   if (updateData.profileImage) {
@@ -289,11 +287,9 @@ async function loadUserData() {
     currentUserData = response.data;
     
     console.log('사용자 정보 로드 완료:', currentUserData);
-    
-    document.getElementById('emailDisplay').value = currentUserData.email;
 
     // UI 업데이트
-    document.getElementById('emailDisplay').textContent = currentUserData.email;
+    document.getElementById('emailDisplay').value = currentUserData.email;
     document.getElementById('nicknameInput').value = currentUserData.nickname;
     
     // 프로필 이미지 설정
