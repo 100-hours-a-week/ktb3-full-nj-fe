@@ -115,6 +115,18 @@ function loadExistingImages() {
   
   console.log('기존 이미지 로드:', postData.images.length, '개');
 }
+// 뒤로가기 버튼 업데이트
+function setupBackButton() {
+  const backBtn = document.querySelector('.header-back');
+  if (backBtn) {
+    backBtn.onclick = () => {
+      const fallback = postData?.postId 
+        ? `post_detail.html?id=${postData.postId}` 
+        : 'main.html';
+      confirmBack(fallback, hasChanges, '수정 사항이 저장되지 않습니다.');
+    };
+  }
+}
 
 //=========변경 감지=========
 // 변경 여부 체크
@@ -424,6 +436,7 @@ async function init() {
   await loadPostData();
   
   // 이벤트 설정
+  setupBackButton();
   setupTitleEvents();
   setupContentEvents();
   setupImageEvents();

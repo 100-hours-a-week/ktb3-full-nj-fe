@@ -91,6 +91,13 @@ function updatePostActions() {
     actionsDiv.style.display = 'none';
   }
 }
+// 뒤로가기 버튼 업데이트
+function setupBackButton() {
+  const backBtn = document.querySelector('.header-back');
+  if (backBtn) {
+    backBtn.onclick = () => smartBack('main.html');
+  }
+}
 
 //=========게시글 수정/삭제=========
 // 게시글 수정/삭제 버튼 설정
@@ -491,6 +498,7 @@ async function init() {
   await loadPostData();
   
   // 이벤트 설정
+  setupBackButton()
   setupLikeButton();
   setupPostActions();
   setupCommentInput();

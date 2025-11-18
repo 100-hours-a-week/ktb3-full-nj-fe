@@ -331,7 +331,7 @@ function removeFromStorage(key) {
   }
 }
 
-// 디바운스
+//=========디바운스=========
 function debounce(func, wait = 300) {
   let timeout;
   return function executedFunction(...args) {
@@ -342,6 +342,33 @@ function debounce(func, wait = 300) {
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   };
+}
+
+//=========뒤로가기 컨트롤=========
+// 스마트 뒤로가기
+function smartBack(fallbackUrl = 'main.html') {
+  if (window.history.length > 1) {
+    const referrer = document.referrer;
+    if (referrer && referrer.includes(window.location.host)) {
+      window.history.back();
+      return;
+    }
+  }
+  navigateTo(fallbackUrl);
+}
+// 변경사항 확인 후 뒤로가기
+function confirmBack(fallbackUrl, hasChanges, message = '변경 사항이 저장되지 않습니다.') {
+  if (hasChanges) {
+    showModal(
+      '나가시겠습니까?',
+      message,
+      function() {
+        smartBack(fallbackUrl);
+      }
+    );
+  } else {
+    smartBack(fallbackUrl);
+  }
 }
 
 console.log('common/utils.js 로드 완료');

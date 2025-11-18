@@ -226,10 +226,26 @@ async function createPost(postData) {
   });
 }
 
+// 뒤로가기 버튼 업데이트
+function setupBackButton() {
+  const backBtn = document.querySelector('.header-back');
+  if (backBtn) {
+    backBtn.onclick = () => {
+      const hasContent = 
+        document.getElementById('titleInput').value.trim() ||
+        document.getElementById('contentInput').value.trim() ||
+        imageFiles.length > 0;
+      
+      confirmBack('main.html', hasContent, '작성 중인 내용이 사라집니다.');
+    };
+  }
+}
+
 // 페이지 초기화
 function init() {
   console.log('게시글 작성 페이지 불러오는 중');
   
+  setupBackButton();
   setupTitleEvents();
   setupContentEvents();
   setupImageEvents();

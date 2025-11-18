@@ -115,10 +115,22 @@ async function updatePassword(newPassword) {
   });
 }
 
+// 뒤로가기 버튼 업데이트
+function setupBackButton() {
+  const backBtn = document.querySelector('.header-back');
+  if (backBtn) {
+    backBtn.onclick = () => {
+      const fallback = 'main.html';
+      confirmBack(fallback, true, '수정 사항이 저장되지 않습니다.');
+    };
+  }
+}
+
 // 페이지 초기화
 function init() {
   console.log('비밀번호 수정 페이지 불러오는 중');
   
+  setupBackButton();
   setupPasswordEvents();
   setupPasswordConfirmEvents();
   setupSubmitEvent();

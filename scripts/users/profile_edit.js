@@ -283,11 +283,23 @@ async function loadUserData() {
   }
 }
 
+// 뒤로가기 버튼 업데이트
+function setupBackButton() {
+  const backBtn = document.querySelector('.header-back');
+  if (backBtn) {
+    backBtn.onclick = () => {
+      const fallback = 'main.html';
+      confirmBack(fallback, hasChanges, '수정 사항이 저장되지 않습니다.');
+    };
+  }
+}
+
 // 회원정보 수정 페이지 초기화
 async function init() {
   console.log('회원정보 수정 페이지 불러오는 중');
   
   await loadUserData();
+  setupBackButton();
   setupProfileImageEvent();
   setupNicknameEvents();
   setupEditButtonEvent();
