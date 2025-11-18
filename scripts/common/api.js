@@ -7,65 +7,77 @@ const API_BASE_URL = 'http://localhost:8080';
 async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   
-  // 기본 헤더 설정
-  const defaultHeaders = {};
-  
-  // FormData가 아닐 때만 Content-Type 추가
-  // FormData는 브라우저가 자동으로 multipart/form-data + boundary 설정
-  if (!(options.body instanceof FormData)) {
-    defaultHeaders['Content-Type'] = 'application/json';
-  }
-  
-  // 토큰이 있으면 Authorization 헤더 추가
-  const token = getAccessToken();
-  if (token) {
-    defaultHeaders['Authorization'] = `Bearer ${token}`;
-  }
-  
-  // 요청 옵션 병합
-  const requestOptions = {
-    ...options,
-    headers: {
-      ...defaultHeaders,
-      ...options.headers
-    }
+  // 요청 옵션 설정
+  const config = {
+    method: options.method || 'GET',
+    headers: options.headers || {},
+    ...options
   };
   
+  // FormData가 아닐 때만 Content-Type 설정
+  if (!options.isFormData && config.body && typeof config.body === 'string') {
+    config.headers['Content-Type'] = 'application/json';
+  }
+  
+  // Access Token 추가
+  const token = getAccessToken();
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  console.log(`➡️ API 요청: ${config.method} ${url}`);
+  console.log('➡️ 요청 데이터:', config.body || '없음');
+  
   try {
-    console.log(`➡️ API 요청: ${options.method || 'GET'} ${url}`);
+    // ✅ fetch 호출!
+    const response = await fetch(url, config);
     
-    // FormData는 로그로 보기 어려우니 타입만 표시
-    if (options.body instanceof FormData) {
-      console.log('➡️ 요청 데이터: FormData');
-      for (let [key, value] of options.body.entries()) {
-        console.log(`   - ${key}:`, value instanceof File ? `File(${value.name})` : value);
-      }
-    } else if (options.body) {
-      // JSON일 때만 parse
-      console.log('➡️ 요청 데이터:', JSON.parse(options.body));
-    } else {
-      console.log('➡️ 요청 데이터: 없음');
+    console.log(` ${config.method} ${url}`, response.status, response.statusText);
+    
+    // ✅ 204 No Content 처리
+    if (response.status === 204) {
+      console.log('➡️ 응답: 204 No Content (응답 바디 없음)');
+      return { success: true };
     }
     
-    const response = await fetch(url, requestOptions);
-    const data = await response.json();
+    // ✅ 응답 바디가 있는지 확인
+    const contentType = response.headers.get('content-type');
+    let data;
     
-    console.log(`➡️ 응답 (${response.status}):`, data);
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      // JSON이 아니면 텍스트로 읽기
+      const text = await response.text();
+      data = text ? { message: text } : { success: true };
+    }
     
+    console.log('➡️ 응답 (' + response.status + '):', data);
+    
+    // 에러 응답 처리
     if (!response.ok) {
-      throw new ApiError(response.status, data.message || '서버 오류가 발생했습니다');
+      throw new ApiError(
+        data.message || getErrorMessage(response.status),
+        response.status,
+        data
+      );
     }
     
     return data;
     
   } catch (error) {
+    console.log('API 요청 실패:', error);
+    
     if (error instanceof ApiError) {
       throw error;
     }
     
-    // 네트워크 오류 등
-    console.error('API 요청 실패:', error);
-    throw new ApiError(0, '네트워크 연결을 확인해주세요');
+    // 네트워크 에러
+    throw new ApiError(
+      '네트워크 연결을 확인해주세요',
+      0,
+      null
+    );
   }
 }
 

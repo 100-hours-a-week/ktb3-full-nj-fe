@@ -189,6 +189,30 @@ function setupEditButtonEvent() {
   });
 }
 
+// 회원정보 수정
+async function updateUserInfo(updateData) {
+  console.log('회원정보 수정 API 호출');
+  
+  // FormData 구성
+  const formData = new FormData();
+  
+  formData.append('nickname', updateData.nickname);
+  
+  // 프로필 이미지가 있을 때만 추가
+  if (updateData.profileImage) {
+    formData.append('profileImage', updateData.profileImage);
+    console.log('📷 프로필 이미지 포함:', updateData.profileImage.name);
+  } else {
+    console.log('📷 프로필 이미지 변경 없음');
+  }
+  
+  // API 호출
+  return await apiRequest('/users', {
+    method: 'PATCH',
+    body: formData
+  });
+}
+
 // '회원 탈퇴' 버튼 이벤트
 function setupDeleteAccountEvent() {
   console.log('회원 탈퇴 시도');
@@ -245,33 +269,9 @@ function setupDeleteAccountEvent() {
   }
 }
 
-// 회원정보 수정
-async function updateUserInfo(updateData) {
-  console.log('회원정보 수정 API 호출');
-  
-  // FormData 구성
-  const formData = new FormData();
-  
-  formData.append('nickname', updateData.nickname);
-  
-  // 프로필 이미지가 있을 때만 추가
-  if (updateData.profileImage) {
-    formData.append('profileImage', updateData.profileImage);
-    console.log('📷 프로필 이미지 포함:', updateData.profileImage.name);
-  } else {
-    console.log('📷 프로필 이미지 변경 없음');
-  }
-  
-  // API 호출
-  return await apiRequest('/users', {
-    method: 'PATCH',
-    body: formData
-  });
-}
-
 // 회원 탈퇴
 async function deleteAccount() {
-  console.log('🗑️ 회원 탈퇴 API 호출');
+  console.log('회원 탈퇴 API 호출');
   
   return await apiRequest('/users', {
     method: 'DELETE'
