@@ -1,7 +1,6 @@
 //DOM 응용
 
 //=========에러 메세지=========
-// 에러 메세지 표시
 function showError(inputId, message) {
   const input = document.getElementById(inputId);
   if (!input) {
@@ -11,19 +10,19 @@ function showError(inputId, message) {
   
   const helperText = input.nextElementSibling;
   
-  input.style.borderColor = '#ff4444';
+  input.style.borderColor = '#D32F2F';
   input.classList.add('error');
   
   if (helperText && helperText.classList.contains('helper-text')) {
     helperText.textContent = message;
     helperText.classList.add('error');
     helperText.style.display = 'block';
-    helperText.style.color = '#e74c3c';
+    helperText.style.color = '#D32F2F';
   }
   
   console.log(`❌ 에러 표시: ${inputId} - ${message}`);
 }
-// 에러 메세지 초기화
+
 function clearError(inputId) {
   const input = document.getElementById(inputId);
   if (!input) return;
@@ -38,7 +37,6 @@ function clearError(inputId) {
 }
 
 //=========버튼=========
-// 버튼 활성화/비활성화 상태 업데이트
 function updateButtonState(formValidation, isValid = true) {
   const submitBtn = document.querySelector('button[type="submit"]');
   if (!submitBtn) return;
@@ -47,17 +45,16 @@ function updateButtonState(formValidation, isValid = true) {
   
   if (allValid) {
     submitBtn.disabled = false;
-    submitBtn.style.background = '#7F6AEE';
+    submitBtn.style.background = '#1A1A1A'; // 검정!
     submitBtn.style.cursor = 'pointer';
   } else {
     submitBtn.disabled = true;
-    submitBtn.style.background = '#ACA0EB';
+    submitBtn.style.background = '#999'; // 회색!
     submitBtn.style.cursor = 'not-allowed';
   }
 }
 
 //=========로딩 상태=========
-// 로딩 상태 표시 (버튼)
 function setLoadingState(isLoading, text = '처리중...') {
   const submitBtn = document.querySelector('button[type="submit"]');
   if (!submitBtn) return;
@@ -65,7 +62,7 @@ function setLoadingState(isLoading, text = '처리중...') {
   if (isLoading) {
     submitBtn.disabled = true;
     submitBtn.textContent = text;
-    submitBtn.style.background = '#ACA0EB';
+    submitBtn.style.background = '#999'; // 회색!
     submitBtn.style.cursor = 'wait';
   } else {
     submitBtn.style.background = '';
@@ -74,7 +71,7 @@ function setLoadingState(isLoading, text = '처리중...') {
     submitBtn.disabled = false;
   }
 }
-// 로딩 인디케이터 표시 (컨테이너)
+
 function showLoading(message = '로딩 중...') {
   const loading = document.getElementById('globalLoading');
   if (!loading) {
@@ -89,7 +86,7 @@ function showLoading(message = '로딩 중...') {
   
   loading.classList.add('active');
 }
-// 로딩 인디케이터 숨기기
+
 function hideLoading() {
   const loading = document.getElementById('globalLoading');
   if (loading) {
@@ -98,55 +95,48 @@ function hideLoading() {
 }
 
 //=========토스트 메시지&모달&포커싱=========
-// 토스트 메시지 표시
 function showToast(message, duration = 3000, type = 'success') {
-  // 기존 토스트 제거
   const existingToast = document.getElementById('toast');
   if (existingToast) {
     existingToast.remove();
   }
   
-  // 토스트 생성
   const toast = document.createElement('div');
   toast.id = 'toast';
   toast.textContent = message;
   
-  // 스타일 적용
   Object.assign(toast.style, {
     position: 'fixed',
     bottom: '40px',
     left: '50%',
     transform: 'translateX(-50%)',
     padding: '16px 24px',
-    borderRadius: '8px',
+    borderRadius: '0', // 직각!
     fontSize: '15px',
     fontWeight: '500',
     color: '#fff',
     zIndex: '10000',
     opacity: '0',
     transition: 'opacity 0.3s ease',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    boxShadow: '0 2px 12px rgba(0, 0, 0, 0.15)',
     minWidth: '200px',
     textAlign: 'center'
   });
   
   // 타입별 색상
   const colors = {
-    success: '#7F6AEE',
-    error: '#ff4444',
+    success: '#1A1A1A', // 검정!
+    error: '#D32F2F',   // 빨강!
     info: '#555'
   };
   toast.style.background = colors[type] || colors.success;
   
-  // DOM에 추가
   document.body.appendChild(toast);
   
-  // 애니메이션
   setTimeout(() => {
     toast.style.opacity = '1';
   }, 10);
   
-  // 자동 제거
   setTimeout(() => {
     toast.style.opacity = '0';
     setTimeout(() => {
@@ -154,15 +144,13 @@ function showToast(message, duration = 3000, type = 'success') {
     }, 300);
   }, duration);
 }
-// 모달 표시
+
 function showModal(title, message, onConfirm, onCancel) {
-  // 기존 모달 제거
   const existingModal = document.getElementById('customModal');
   if (existingModal) {
     existingModal.remove();
   }
   
-  // 모달 오버레이
   const overlay = document.createElement('div');
   overlay.id = 'customModal';
   overlay.style.cssText = `
@@ -178,18 +166,16 @@ function showModal(title, message, onConfirm, onCancel) {
     z-index: 9999;
   `;
   
-  // 모달 박스
   const modal = document.createElement('div');
   modal.style.cssText = `
     background: white;
-    border-radius: 12px;
+    border-radius: 0;
     padding: 32px;
     max-width: 400px;
     width: 90%;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   `;
   
-  // 제목
   const titleEl = document.createElement('h3');
   titleEl.textContent = title;
   titleEl.style.cssText = `
@@ -199,7 +185,6 @@ function showModal(title, message, onConfirm, onCancel) {
     text-align: center;
   `;
   
-  // 메시지
   const messageEl = document.createElement('p');
   messageEl.textContent = message;
   messageEl.style.cssText = `
@@ -210,44 +195,41 @@ function showModal(title, message, onConfirm, onCancel) {
     line-height: 1.5;
   `;
   
-  // 버튼 컨테이너
   const buttonContainer = document.createElement('div');
   buttonContainer.style.cssText = `
     display: flex;
     gap: 12px;
   `;
   
-  // 취소 버튼
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '취소';
   cancelBtn.style.cssText = `
     flex: 1;
     padding: 12px;
-    border: none;
-    border-radius: 8px;
+    border: 1px solid #E0E0E0;
+    border-radius: 0;
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
-    background: #333;
-    color: white;
+    background: white;
+    color: #333;
   `;
   cancelBtn.onclick = () => {
     overlay.remove();
     if (onCancel) onCancel();
   };
   
-  // 확인 버튼
   const confirmBtn = document.createElement('button');
   confirmBtn.textContent = '확인';
   confirmBtn.style.cssText = `
     flex: 1;
     padding: 12px;
     border: none;
-    border-radius: 8px;
+    border-radius: 0;
     font-size: 15px;
     font-weight: 500;
     cursor: pointer;
-    background: #7F6AEE;
+    background: #1A1A1A;
     color: white;
   `;
   confirmBtn.onclick = () => {
@@ -255,7 +237,6 @@ function showModal(title, message, onConfirm, onCancel) {
     if (onConfirm) onConfirm();
   };
   
-  // 조립
   buttonContainer.appendChild(cancelBtn);
   buttonContainer.appendChild(confirmBtn);
   
@@ -266,7 +247,6 @@ function showModal(title, message, onConfirm, onCancel) {
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
   
-  // 오버레이 클릭 시 닫기
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) {
       overlay.remove();
@@ -274,7 +254,7 @@ function showModal(title, message, onConfirm, onCancel) {
     }
   });
 }
-// 특정 요소에 포커스
+
 function focusElement(elementId) {
   const element = document.getElementById(elementId);
   if (element) {
@@ -283,19 +263,17 @@ function focusElement(elementId) {
 }
 
 //=========페이지 이동=========
-// 페이지 이동
 function navigateTo(url, delay = 0) {
   setTimeout(() => {
     window.location.href = url;
   }, delay);
 }
-// 페이지 이동 (히스토리 교체)
+
 function replaceLocation(url) {
   window.location.replace(url);
 }
 
 //=========localStorage=========
-// localStorage에 데이터 저장
 function saveToStorage(key, value) {
   try {
     const stringValue = typeof value === 'object' 
@@ -308,7 +286,7 @@ function saveToStorage(key, value) {
     return false;
   }
 }
-// localStorage에서 데이터 가져오기
+
 function getFromStorage(key, defaultValue = null) {
   try {
     const value = localStorage.getItem(key);
@@ -324,7 +302,7 @@ function getFromStorage(key, defaultValue = null) {
     return defaultValue;
   }
 }
-// localStorage에서 데이터 삭제
+
 function removeFromStorage(key) {
   try {
     localStorage.removeItem(key);
@@ -349,7 +327,6 @@ function debounce(func, wait = 300) {
 }
 
 //=========뒤로가기 컨트롤=========
-// 스마트 뒤로가기
 function smartBack(fallbackUrl = 'main.html') {
   if (window.history.length > 1) {
     const referrer = document.referrer;
@@ -360,7 +337,7 @@ function smartBack(fallbackUrl = 'main.html') {
   }
   navigateTo(fallbackUrl);
 }
-// 변경사항 확인 후 뒤로가기
+
 function confirmBack(fallbackUrl, hasChanges, message = '변경 사항이 저장되지 않습니다.') {
   if (hasChanges) {
     showModal(
