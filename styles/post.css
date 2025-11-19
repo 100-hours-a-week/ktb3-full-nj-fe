@@ -203,6 +203,139 @@
 }
 
 /* ========================================
+   게시글 작성/수정 페이지
+======================================== */
+
+.form-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 60px 20px;
+  flex: 1;
+  width: 100%;
+}
+
+.form-wrapper {
+  background: white;
+  border-radius: 0;
+  border: 1px solid #E0E0E0;
+  padding: 50px 40px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.form-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 40px;
+  text-align: left;
+}
+
+.form-text {
+  font-size: 13px;
+  font-weight: 400;
+  color: #666;
+  margin-left: 8px;
+}
+
+/* 이미지 미리보기 */
+.image-preview-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 12px 0;
+  min-height: 0;
+}
+
+.image-preview-container:empty {
+  display: none;
+}
+
+.image-preview-item {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 0;
+  overflow: hidden;
+  border: 1px solid #E0E0E0;
+  background: #F9F9F9;
+}
+
+.image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  background: rgba(26, 26, 26, 0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  transition: all 0.2s;
+}
+
+.image-delete-btn:hover {
+  background: #D32F2F;
+  transform: scale(1.1);
+}
+
+.image-select-wrapper {
+  margin-top: 12px;
+}
+
+.image-select-btn {
+  padding: 12px 24px;
+  border: 1px solid #333;
+  border-radius: 0;
+  background: white;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.image-select-btn:hover {
+  background: #1A1A1A;
+  color: white;
+  border-color: #1A1A1A;
+}
+
+/* 헬퍼텍스트 - 작성 페이지도 아래로 */
+.form-wrapper .helper-text {
+  position: static;
+  display: block;
+  margin-top: 4px;
+  transform: none;
+  left: auto;
+  background: none;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+}
+
+.form-wrapper .helper-text::before,
+.form-wrapper .helper-text::after {
+  display: none;
+}
+
+.form-wrapper .helper-text:empty {
+  display: none;
+}
+
+/* ========================================
    반응형
 ======================================== */
 

@@ -58,6 +58,29 @@ body {
   font-weight: 300;
 }
 
+/* 일반 버튼만 상속 */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  font-family: inherit;
+}
+
+/* 화살표/아이콘 버튼은 제외 */
+.header-back,
+.slider-arrow,
+.image-delete-btn,
+.btn-remove-image {
+  font-family: -apple-system, system-ui, sans-serif;
+}
+
+/* 인풋/텍스트에어리어만 */
+input:not([type="button"]),
+textarea,
+select {
+  font-family: inherit;
+}
+
 /* ========================================
    헤더 (모든 페이지 공통)
 ======================================== */
@@ -75,44 +98,8 @@ body {
   padding: 0 40px;
   height: 80px;
   display: flex;
-  justify-content: space-between; /* 기존 */
-  align-items: center;
-}
-
-/* 뒤로가기 버튼 */
-.header-back {
-  background: none;
-  border: none;
-  font-size: 32px;
-  cursor: pointer;
-  padding: 4px 12px;
-  color: #333;
-  width: 40px; /* 고정 너비 */
-  flex-shrink: 0;
-}
-
-.header-back:hover {
-  color: #1A1A1A;
-}
-
-/* 오른쪽 빈 공간 (균형 맞추기) */
-.header-spacer {
-  width: 40px; /* header-back과 동일한 너비 */
-  flex-shrink: 0;
-}
-
-.header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.header-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1A1A1A;
 }
 
 .logo {
@@ -141,14 +128,21 @@ body {
 .header-back {
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 32px;
   cursor: pointer;
   padding: 4px 12px;
-  color: #666;
+  color: #333;
+  width: 40px;
+  flex-shrink: 0;
 }
 
 .header-back:hover {
   color: #1A1A1A;
+}
+
+.header-spacer {
+  width: 40px;
+  flex-shrink: 0;
 }
 
 .header-profile {
@@ -189,9 +183,6 @@ body {
   object-fit: cover;
 }
 
-/* ========================================
-   드롭다운 메뉴
-======================================== */
 .dropdown-menu {
   position: absolute;
   top: 50px;
@@ -214,6 +205,7 @@ body {
   border-bottom: 1px solid #F0F0F0;
   font-size: 14px;
   color: #333;
+  transition: background 0.2s;
 }
 
 .dropdown-item:last-child {
@@ -225,7 +217,7 @@ body {
 }
 
 /* ========================================
-   레이아웃 컨테이너
+   레이아웃
 ======================================== */
 .page-container {
   min-height: 100vh;
@@ -253,9 +245,14 @@ body {
   color: white;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: #333;
   transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  background: #999;
+  cursor: not-allowed;
 }
 
 .btn-secondary {
@@ -264,7 +261,7 @@ body {
   border: 1px solid #E0E0E0;
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background: #FAFAFA;
 }
 
@@ -273,7 +270,7 @@ body {
   color: white;
 }
 
-.btn-danger:hover {
+.btn-danger:hover:not(:disabled) {
   background: #B71C1C;
 }
 
@@ -284,147 +281,7 @@ body {
 }
 
 /* ========================================
-   기본 폼 요소
-======================================== */
-.form-group {
-  position: relative;
-  margin-bottom: 12px;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 4px;
-  font-weight: 500;
-  color: #333;
-  font-size: 14px;
-}
-
-.form-label.required::after {
-  content: ' *';
-  color: #D32F2F;
-}
-
-.form-input {
-  width: 100%;
-  padding: 16px;
-  border: 1px solid #E0E0E0;
-  border-radius: 0;
-  font-size: 16px;
-  transition: all 0.2s;
-  background: #FAFAFA;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #333;
-  background: white;
-}
-
-.form-input.error {
-  border-color: #D32F2F;
-}
-
-.form-textarea {
-  width: 100%;
-  min-height: 120px;
-  padding: 16px;
-  border: 1px solid #E0E0E0;
-  border-radius: 0;
-  font-size: 16px;
-  resize: vertical;
-  font-family: inherit;
-  transition: all 0.2s;
-  background: #FAFAFA;
-}
-
-.form-textarea:focus {
-  outline: none;
-  border-color: #333;
-  background: white;
-}
-
-.form-textarea.error {
-  border-color: #D32F2F;
-}
-
-.helper-text {
-  position: absolute;
-  left: calc(100% + 16px);
-  top: 50%;
-  transform: translateY(-50%);
-  background: #fff;
-  border: 1px solid #E0E0E0;
-  border-radius: 0;
-  padding: 8px 12px;
-  font-size: 12px;
-  color: #666;
-  white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s, visibility 0.2s;
-  z-index: 10;
-}
-
-.helper-text::before {
-  content: '';
-  position: absolute;
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  border: 6px solid transparent;
-  border-right-color: #E0E0E0;
-}
-
-.helper-text::after {
-  content: '';
-  position: absolute;
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
-  border: 5px solid transparent;
-  border-right-color: #fff;
-  margin-right: -1px;
-}
-
-.helper-text:not(:empty) {
-  opacity: 1;
-  visibility: visible;
-}
-
-.helper-text.error {
-  color: #D32F2F;
-  border-color: #D32F2F;
-  background: #FFF5F5;
-}
-
-.helper-text.error::before {
-  border-right-color: #D32F2F;
-}
-
-.helper-text.error::after {
-  border-right-color: #FFF5F5;
-}
-
-.form-group:has(.form-textarea) .helper-text {
-  top: 16px;
-  transform: none;
-}
-
-.form-link {
-  color: #333;
-  text-decoration: none;
-  font-size: 14px;
-  transition: color 0.2s;
-}
-
-.form-link:hover {
-  color: #666;
-  text-decoration: underline;
-}
-
-/* ========================================
-   전역 로딩 오버레이
+   로딩
 ======================================== */
 #globalLoading {
   display: none;
@@ -483,26 +340,7 @@ body {
     font-size: 16px;
   }
   
-  .form-input,
-  .form-textarea {
-    font-size: 16px;
-  }
-  
   .btn {
     padding: 10px 20px;
-  }
-  
-  .helper-text {
-    position: static;
-    transform: none;
-    margin-top: 4px;
-    display: block;
-    white-space: normal;
-    left: auto;
-  }
-  
-  .helper-text::before,
-  .helper-text::after {
-    display: none;
   }
 }

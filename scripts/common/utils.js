@@ -112,6 +112,7 @@ function showToast(message, duration = 3000, type = 'success') {
     transform: 'translateX(-50%)',
     padding: '16px 24px',
     borderRadius: '0', // 직각!
+    fontFamily: 'KoreaInstituteOfMachineryAndMaterials, -apple-system, BlinkMacSystemFont, sans-serif',
     fontSize: '15px',
     fontWeight: '500',
     color: '#fff',
@@ -201,37 +202,27 @@ function showModal(title, message, onConfirm, onCancel) {
     gap: 12px;
   `;
   
+  // ✅ 취소 버튼 - .btn-secondary 클래스 사용
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = '취소';
+  cancelBtn.className = 'btn btn-secondary'; // 클래스로 변경!
   cancelBtn.style.cssText = `
     flex: 1;
-    padding: 12px;
-    border: 1px solid #E0E0E0;
-    border-radius: 0;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    background: white;
-    color: #333;
-  `;
+    margin: 0;
+  `; // 레이아웃만 인라인
   cancelBtn.onclick = () => {
     overlay.remove();
     if (onCancel) onCancel();
   };
   
+  // ✅ 확인 버튼 - .btn-primary 클래스 사용
   const confirmBtn = document.createElement('button');
   confirmBtn.textContent = '확인';
+  confirmBtn.className = 'btn btn-primary'; // 클래스로 변경!
   confirmBtn.style.cssText = `
     flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 0;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    background: #1A1A1A;
-    color: white;
-  `;
+    margin: 0;
+  `; // 레이아웃만 인라인
   confirmBtn.onclick = () => {
     overlay.remove();
     if (onConfirm) onConfirm();

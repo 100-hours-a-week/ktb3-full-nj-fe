@@ -1,8 +1,7 @@
 /* ========================================
-   게시글 상세 페이지
+   게시글 상세 - C.Groove 스타일
 ======================================== */
 
-/* 메인 컨테이너 */
 .detail-container {
   max-width: 800px;
   margin: 0 auto;
@@ -18,7 +17,8 @@
 
 .detail-header {
   background: white;
-  border-radius: 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: 0;
   padding: 24px;
   margin-bottom: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -34,7 +34,7 @@
 .detail-title {
   font-size: 24px;
   font-weight: 600;
-  color: #333;
+  color: #1A1A1A;
   margin: 0;
   flex: 1;
 }
@@ -62,7 +62,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #e0e0e0;
+  background: #E0E0E0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -71,7 +71,7 @@
 
 .author-name {
   font-weight: 500;
-  color: #333;
+  color: #1A1A1A;
 }
 
 .post-date {
@@ -84,7 +84,8 @@
 
 .detail-content {
   background: white;
-  border-radius: 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: 0;
   padding: 24px;
   margin-bottom: 20px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
@@ -94,7 +95,7 @@
   width: 100%;
   max-height: 400px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 0;
   margin-bottom: 20px;
 }
 
@@ -106,13 +107,12 @@
   white-space: pre-line;
 }
 
-/* 통계 */
 .detail-stats {
   display: flex;
   gap: 24px;
   padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: #F8F9FA;
+  border-radius: 0;
   margin-bottom: 0;
 }
 
@@ -124,7 +124,7 @@
 .stat-value {
   font-size: 20px;
   font-weight: 600;
-  color: #333;
+  color: #1A1A1A;
   margin-bottom: 4px;
 }
 
@@ -133,20 +133,19 @@
   color: #666;
 }
 
-/* 좋아요 버튼 (클릭 가능) */
 .stat-item.like-button {
   cursor: pointer;
   padding: 8px;
-  border-radius: 8px;
+  border-radius: 0;
   transition: all 0.2s;
 }
 
 .stat-item.like-button:hover {
-  background: rgba(139, 127, 232, 0.1);
+  background: rgba(26, 26, 26, 0.05);
 }
 
 .stat-item.like-button.active .stat-value {
-  color: #ACA0EB;
+  color: #1A1A1A;
 }
 
 .stat-item.like-button.inactive .stat-value {
@@ -159,7 +158,8 @@
 
 .comments-section {
   background: white;
-  border-radius: 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: 0;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
@@ -168,10 +168,9 @@
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 20px;
-  color: #333;
+  color: #1A1A1A;
 }
 
-/* 댓글 입력 폼 */
 .comment-form {
   margin-bottom: 24px;
 }
@@ -180,35 +179,37 @@
   width: 100%;
   min-height: 100px;
   padding: 16px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1px solid #E0E0E0;
+  border-radius: 0;
   font-size: 14px;
   resize: vertical;
   margin-bottom: 12px;
   font-family: inherit;
+  transition: all 0.2s;
+  background: #FAFAFA;
 }
 
 .comment-input:focus {
   outline: none;
-  border-color: #8B7FE8;
+  border-color: #333;
+  background: white;
 }
 
 .comment-submit {
   width: 100%;
-  background: #ACA0EB;
+  background: #999;
   cursor: not-allowed;
 }
 
 .comment-submit.active {
-  background: #7F6AEE;
+  background: #1A1A1A;
   cursor: pointer;
 }
 
 .comment-submit.active:hover {
-  background: #6B5BD6;
+  background: #333;
 }
 
-/* 댓글 목록 */
 .comments-list {
   display: flex;
   flex-direction: column;
@@ -216,7 +217,7 @@
 }
 
 .comment-item {
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #F0F0F0;
   padding-bottom: 16px;
 }
 
@@ -257,7 +258,6 @@
   margin-left: 40px;
 }
 
-/* 댓글 수정 모드 */
 .comment-item.editing .comment-content {
   display: none;
 }
@@ -267,8 +267,8 @@
   width: 100%;
   min-height: 80px;
   padding: 12px;
-  border: 1px solid #8B7FE8;
-  border-radius: 6px;
+  border: 1px solid #333;
+  border-radius: 0;
   font-size: 14px;
   margin-left: 40px;
   margin-top: 8px;

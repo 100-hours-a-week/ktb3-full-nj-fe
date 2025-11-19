@@ -13,7 +13,6 @@
   overflow: hidden;
 }
 
-/* 배경 장식 선들 - 위치 수정 */
 .auth-container::before {
   content: '';
   position: absolute;
@@ -57,58 +56,18 @@
   letter-spacing: -1px;
 }
 
-.auth-form {
-  margin-bottom: 24px;
-}
-
-/* 폼 그룹 간격 조정 */
 .auth-form .form-group {
   margin-bottom: 24px;
 }
 
-/* 라벨 스타일 */
-.auth-form .form-label {
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 8px;
-}
-
-/* 인풋 스타일 */
-.auth-form .form-input {
-  border: 1px solid #E0E0E0;
-  border-radius: 0;
-  padding: 16px;
-  font-size: 15px;
-  transition: all 0.2s;
-  background: #FAFAFA;
-}
-
-.auth-form .form-input:focus {
-  border-color: #333;
-  background: white;
-}
-
-.auth-form .form-input::placeholder {
-  color: #AAAAAA;
-}
-
-/* 버튼 스타일 */
 .auth-form .btn-primary {
-  background: #1A1A1A;
-  color: white;
-  border: none;
   padding: 18px;
   font-size: 16px;
   font-weight: 600;
-  border-radius: 0;
   margin-top: 16px;
-  transition: all 0.3s;
 }
 
 .auth-form .btn-primary:hover {
-  background: #333;
-  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
@@ -116,18 +75,16 @@
   text-align: center;
   padding-top: 16px;
   border-top: 1px solid #F0F0F0;
+  margin-top: 8px;
 }
 
 .auth-footer .form-link {
   color: #666;
   font-size: 14px;
-  text-decoration: none;
-  transition: color 0.2s;
 }
 
 .auth-footer .form-link:hover {
   color: #1A1A1A;
-  text-decoration: underline;
 }
 
 /* ========================================
@@ -177,41 +134,6 @@
   font-size: 13px;
   color: #999;
   font-weight: 400;
-}
-
-/* ========================================
-   헬퍼 텍스트 - 심플 버전
-======================================== */
-
-.auth-form .helper-text {
-  position: static;
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-  color: #999;
-  transform: none;
-  left: auto;
-  background: none;
-  border: none;
-  padding: 0;
-  box-shadow: none;
-}
-
-.auth-form .helper-text::before,
-.auth-form .helper-text::after {
-  display: none;
-}
-
-.auth-form .helper-text:empty {
-  display: none;
-}
-
-.auth-form .helper-text.error {
-  color: #D32F2F;
-}
-
-.auth-form .form-input.error {
-  border-color: #D32F2F;
 }
 
 /* ========================================

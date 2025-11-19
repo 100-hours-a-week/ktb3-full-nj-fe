@@ -3,33 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>게시글 작성 - 아무 말 대잔치</title>
+  <title>게시글 작성 - C.Groove</title>
   <link rel="stylesheet" href="styles/common.css">
+  <link rel="stylesheet" href="styles/forms.css">
   <link rel="stylesheet" href="styles/post.css">
 </head>
-<body>
+<body class="profile-page"> <!-- 클래스 추가 -->
   <div id="globalLoading">
     <div class="loading-spinner">
       <div class="spinner"></div>
       <div class="loading-text">로딩 중...</div>
     </div>
   </div>
+  
   <div class="page-container">
     <!-- 헤더 -->
     <header class="header">
-      <div class="header-content">
+      <div class="header-container"> <!-- header-content → header-container -->
         <button class="header-back">‹</button>
-        <h1 class="header-title">아무 말 대잔치</h1>
-        <div class="header-profile" id="profileMenu">
-          <!-- 프로필 이미지 영역 -->
-          <span class="profile-avatar"></span>
-          <!-- 드롭다운 메뉴 -->
-          <div class="dropdown-menu" id="dropdownMenu">
-            <div class="dropdown-item" onclick="location.href='profile_edit.html'">회원정보수정</div>
-            <div class="dropdown-item active">비밀번호수정</div>
-            <div class="dropdown-item" onclick="logout()">로그아웃</div>
-          </div>
-        </div>
+        <h1 class="logo bagel-fat-one-regular">C.Groove</h1> <!-- 변경 -->
+        <div class="header-spacer"></div> <!-- spacer 추가 -->
       </div>
     </header>
     
@@ -38,61 +31,63 @@
         <h2 class="form-title">게시글 작성</h2>
         
         <form id="postForm">
+          <!-- 제목 -->
           <div class="form-group">
             <label class="form-label required">제목</label>
             <input 
               type="text" 
               class="form-input" 
               id="titleInput"
-              placeholder="제목을 입력해주세요. (최대 26글자)"
+              placeholder="제목을 입력해주세요 (최대 26글자)"
               maxlength="26"
-            ><span class="helper-text"></span>
+            >
+            <span class="helper-text"></span>
           </div>
           
+          <!-- 내용 -->
           <div class="form-group">
             <label class="form-label required">내용</label>
             <textarea 
               class="form-textarea" 
               id="contentInput"
-              placeholder="내용을 입력해주세요."
+              placeholder="내용을 입력해주세요"
             ></textarea>
             <span class="helper-text"></span>
           </div>
           
+          <!-- 이미지 -->
           <div class="form-group">
             <label class="form-label">이미지</label>
             
-            <!-- 이미지 미리보기 컨테이너 -->
+            <!-- 이미지 미리보기 -->
             <div class="image-preview-container" id="imagePreviewContainer">
-              <!-- 선택된 이미지들이 여기 표시됨 -->
+              <!-- JS로 동적 렌더링 -->
             </div>
             
-            <!-- 파일 선택 버튼 -->
+            <!-- 파일 선택 -->
             <div class="image-select-wrapper">
               <button type="button" class="image-select-btn" id="fileSelectBtn">
                 파일 선택
               </button>
-              <span class="form-text">파일을 선택해주세요.</span>
+              <span class="form-text">파일을 선택해주세요</span>
             </div>
             
-            <!-- 숨겨진 input -->
             <input type="file" id="imageInput" accept="image/*" multiple style="display: none;">
           </div>
           
-          <button type="submit" class="btn btn-primary">완료</button>
+          <button type="submit" class="btn btn-primary" disabled>완료</button>
         </form>
       </div>
     </div>
   </div>
+  
   <script src="scripts/common/utils.js"></script>
   <script src="scripts/common/validators.js"></script>
   <script src="scripts/common/api.js"></script>
   <script src="scripts/common/header.js"></script> 
   <script src="scripts/posts/create.js"></script>
 
-  <!-- 페이지 초기화 -->
   <script>
-    // 헤더 초기화
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initHeader);
     } else {

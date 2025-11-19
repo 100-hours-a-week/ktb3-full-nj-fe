@@ -86,14 +86,12 @@
   object-fit: cover;
 }
 
-/* 빈 상태 + 아이콘 */
 .profile-image-empty {
   font-size: 48px;
   color: #AAAAAA;
   font-weight: 300;
 }
 
-/* 변경 오버레이 */
 .profile-image-overlay {
   position: absolute;
   top: 0;
@@ -120,7 +118,6 @@
   font-weight: 500;
 }
 
-/* 삭제 오버레이 - 하단 그라데이션 */
 .profile-image-delete-overlay {
   position: absolute;
   bottom: 0;
@@ -131,7 +128,7 @@
     to top, 
     rgba(211, 47, 47, 0.95) 0%,
     rgba(211, 47, 47, 0.85) 40%,
-    rgba(252, 250, 250, 0) 100%
+    rgba(211, 47, 47, 0) 100%
   );
   border-radius: 0 0 50% 50%;
   opacity: 0;
@@ -170,41 +167,6 @@
 
 .delete-icon {
   font-size: 14px;
-}
-
-/* ========================================
-   읽기 전용 인풋
-======================================== */
-
-.form-input[readonly] {
-  background: #F5F5F5 !important;
-  cursor: not-allowed !important;
-  color: #999;
-}
-
-/* ========================================
-   헬퍼텍스트 - 인풋 아래로
-======================================== */
-
-.profile-section .helper-text {
-  position: static;
-  display: block;
-  margin-top: 4px;
-  transform: none;
-  left: auto;
-  background: none;
-  border: none;
-  padding: 0;
-  box-shadow: none;
-}
-
-.profile-section .helper-text::before,
-.profile-section .helper-text::after {
-  display: none;
-}
-
-.profile-section .helper-text:empty {
-  display: none;
 }
 
 /* ========================================
