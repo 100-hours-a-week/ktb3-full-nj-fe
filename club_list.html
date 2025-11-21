@@ -44,16 +44,22 @@
         <div class="filter-container">
           <div class="filter-tabs">
             <button class="filter-tab active" data-filter="all">전체</button>
-            <button class="filter-tab" data-filter="university">대학별</button>
-            <button class="filter-tab" data-filter="genre">장르별</button>
+            <button class="filter-tab" data-filter="club">동아리</button>
+            <button class="filter-tab" data-filter="crew">크루</button>
+            <button class="filter-tab" data-filter="my">MY</button>
           </div>
           
-          <div class="sort-options">
-            <button class="sort-btn active" data-sort="name">가-하</button>
-            <button class="sort-btn" data-sort="name-desc">하-가</button>
-            <button class="sort-btn" data-sort="members">인기순</button>
+          <div class="filter-right">
+            <div class="sort-options">
+              <button class="sort-btn active" data-sort="name">내림차순</button>
+              <button class="sort-btn" data-sort="name-desc">오름차순</button>
+            </div>
+            <button 
+              class="create-club-btn"
+              onclick="location.href='club_create.html'">
+              + NEW
+            </button>
           </div>
-        </div>
       </section>
       
       <!-- 동아리 그리드 -->

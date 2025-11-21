@@ -126,6 +126,11 @@ async function getMyClubs() {
   });
 }
 
+// 동아리 목록 조회
+async function getClubs() {
+  return await apiRequest('/clubs', { method: 'GET' });
+}
+
 // 게시글 목록 조회
 async function getPosts(page = 1, limit = 10) {
   console.log('게시글 목록 조회 API 호출', { page, limit }); 

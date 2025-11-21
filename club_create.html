@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>동아리 생성 - C.Groove</title>
+  <link rel="stylesheet" href="styles/common.css">
+  <link rel="stylesheet" href="styles/forms.css">
+  <link rel="stylesheet" href="styles/post.css">
+  <link rel="stylesheet" href="styles/club.css">
+</head>
+<body class="profile-page">
+  <div id="globalLoading">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <div class="loading-text">로딩 중...</div>
+    </div>
+  </div>
+  
+  <div class="page-container">
+    <!-- 헤더: 게시글 작성과 동일 패턴 -->
+    <header class="header">
+      <div class="header-container">
+        <button class="header-back" onclick="history.back()">‹</button>
+        <h1 class="logo bagel-fat-one-regular">C.Groove</h1>
+        <div class="header-spacer"></div>
+      </div>
+    </header>
+    
+    <div class="form-container">
+      <div class="form-wrapper">
+        <h2 class="form-title">동아리 생성</h2>
+
+        <!-- 대표 이미지 (원형) -->
+        <div class="club-avatar-wrapper">
+          <div class="club-avatar-upload" id="clubImageContainer">
+            <span class="club-avatar-icon">+</span>
+          </div>
+          <span class="club-avatar-label">동아리 대표 이미지</span>
+          <input 
+            type="file" 
+            id="clubImageUpload" 
+            accept="image/*" 
+            style="display:none;">
+        </div>
+
+        <form id="clubCreateForm" novalidate>
+          <!-- 동아리 타입 -->
+          <div class="form-group">
+            <label class="form-label required">분류</label>
+            <div class="scope-options">
+              <label class="scope-option">
+                <input type="radio" name="clubType" value="CLUB" checked>
+                <span>동아리</span>
+              </label>
+              <label class="scope-option">
+                <input type="radio" name="clubType" value="CREW">
+                <span>크루</span>
+              </label>
+            </div>
+          </div>
+          <!-- 동아리 이름 -->
+          <div class="form-group">
+            <label class="form-label required">동아리 이름</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              id="clubNameInput"
+              placeholder="예: Tisket-Tasket"
+              maxlength="100"
+              required
+            >
+            <span class="helper-text"></span>
+          </div>
+
+          <!-- 한 줄 소개 -->
+          <div class="form-group">
+            <label class="form-label required">한 줄 소개</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              id="clubSubtitleInput"
+              placeholder="예: 락킹을 사랑하는 중앙대 댄스팀"
+              maxlength="200"
+            >
+            <span class="helper-text"></span>
+          </div>
+
+          <!-- 활동 장소 -->
+          <div class="form-group">
+            <label class="form-label required">활동 장소</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              id="locationInput"
+              placeholder="예: 중앙대학교 310관 연습실 / 홍대 인근"
+              maxlength="200"
+            >
+            <span class="helper-text"></span>
+          </div>
+
+          <!-- 동아리 소개 -->
+          <div class="form-group">
+            <label class="form-label required">동아리 소개</label>
+            <textarea 
+              class="form-textarea" 
+              id="descriptionInput"
+              rows="6"
+              placeholder="동아리 분위기, 연습 빈도, 활동 내용 등을 자유롭게 적어주세요."
+              maxlength="1000"
+              required
+            ></textarea>
+            <span class="helper-text"></span>
+          </div>
+
+          <!-- 태그 -->
+          <div class="form-group">
+            <label class="form-label">태그</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              id="tagsInput"
+              placeholder="태그를 쉼표로 구분해서 입력해주세요 (예: 락킹, 중앙대, 공연)"
+            >
+            <span class="helper-text"></span>
+          </div>
+
+          <!-- 버튼 -->
+          <div class="club-form-actions">
+            <button 
+              type="button" 
+              class="btn btn-secondary"
+              onclick="history.back()">
+              취소
+            </button>
+            <button 
+              type="submit" 
+              class="btn btn-primary" 
+              id="clubSubmitBtn">
+              동아리 생성
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <script src="scripts/common/utils.js"></script>
+  <script src="scripts/common/api.js"></script>
+  <script src="scripts/common/header.js"></script>
+  <script src="scripts/common/image_util.js"></script>
+  <script src="scripts/clubs/create.js"></script>
+
+  <script>
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initHeader);
+    } else {
+      initHeader();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+/* ================================
+   동아리 생성 페이지
+================================ */
+
+.club-create-main {
+  background: #FAFAFA;
+  min-height: calc(100vh - 80px);
+}
+
+.club-create-section {
+  padding: 60px 20px 80px;
+}
+
+.club-create-container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  padding: 40px 48px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+}
+
+.club-create-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: #1A1A1A;
+}
+
+.club-create-subtitle {
+  font-size: 14px;
+  color: #777;
+  margin: 0 0 32px;
+}
+
+/* 상단 영역: 이미지 + 기본 정보 */
+.club-form-top {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.club-cover-wrapper {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+.club-cover-upload {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 1px dashed #CFCFCF;
+  background: #FAFAFA;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  gap: 8px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.club-cover-upload:hover {
+  border-color: #999;
+  background: #F5F5F5;
+}
+
+.club-cover-icon {
+  font-size: 28px;
+  color: #999;
+}
+
+.club-cover-text {
+  font-size: 13px;
+  color: #999;
+}
+
+.club-cover-upload img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 오른쪽 기본 필드 */
+.club-basic-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 공통 폼 스타일(forms.css 따라감 가정) */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.form-label.required::after {
+  content: " *";
+  color: #E53935;
+}
+
+.form-input, .form-textarea {
+  width: 100%;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  border-color: #111;
+  box-shadow: 0 0 0 1px #111111;
+}
+
+.form-textarea {
+  resize: vertical;
+}
+
+.helper-text {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #E53935;
+}
+
+.helper-text.small {
+  color: #777;
+}
+
+/* 버튼 영역 */
+.club-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* 버튼 (기존 btn 클래스를 따른다고 가정) */
+.btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary {
+  background: #111111;
+  color: #FFFFFF;
+}
+
+.btn-primary:hover {
+  background: #333333;
+}
+
+.btn-secondary {
+  background: #F5F5F5;
+  color: #333333;
+  border: 1px solid #E0E0E0;
+}
+
+.btn-secondary:hover {
+  background: #E0E0E0;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .club-create-container {
+    padding: 24px 20px;
+  }
+
+  .club-form-top {
+    flex-direction: column;
+  }
+
+  .club-cover-wrapper {
+    width: 100%;
+  }
+}
