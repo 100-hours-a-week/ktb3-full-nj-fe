@@ -35,4 +35,14 @@ function truncateTitle(title, maxLength = 26) {
   return title;
 }
 
+// 태그 파싱
+function parseTags(tagsInput) {
+  if (!tagsInput || tagsInput.trim() === '') return [];
+  
+  return tagsInput
+    .split(',')
+    .map(tag => tag.trim())
+    .filter(tag => tag.length > 0);
+}
+
 console.log('common/format.js 로드 완료');

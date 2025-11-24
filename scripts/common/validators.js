@@ -140,3 +140,82 @@ function validateContent(content, validation) {
   validation.content = true;
   return true;
 }
+
+//=========clubs=========
+// 동아리 이름 검증
+function validateClubName(value, validation) {
+  if (!value || value.trim() === '') {
+    showError('clubNameInput', '*동아리 이름을 입력해주세요');
+    validation.clubName = false;
+    return false;
+  }
+  
+  if (value.length > 30) {
+    showError('clubNameInput', '*동아리 이름은 최대 30자까지 가능합니다');
+    validation.clubName = false;
+    return false;
+  }
+  
+  clearError('clubNameInput');
+  validation.clubName = true;
+  return true;
+}
+
+// 한 줄 소개 검증
+function validateIntro(value, validation) {
+  if (!value || value.trim() === '') {
+    showError('clubSubtitleInput', '*한 줄 소개를 입력해주세요');
+    validation.intro = false;
+    return false;
+  }
+  
+  if (value.length > 50) {
+    showError('clubSubtitleInput', '*한 줄 소개는 최대 50자까지 가능합니다');
+    validation.intro = false;
+    return false;
+  }
+  
+  clearError('clubSubtitleInput');
+  validation.intro = true;
+  return true;
+}
+
+// 활동 장소 검증
+function validateLocation(value, validation) {
+  if (!value || value.trim() === '') {
+    showError('locationInput', '*활동 장소를 입력해주세요');
+    validation.locationName = false;
+    return false;
+  }
+  
+  if (value.length > 100) {
+    showError('locationInput', '*활동 장소는 최대 100자까지 가능합니다');
+    validation.locationName = false;
+    return false;
+  }
+  
+  clearError('locationInput');
+  validation.locationName = true;
+  return true;
+}
+
+// 동아리 소개 검증
+function validateDescription(value, validation) {
+  if (!value || value.trim() === '') {
+    showError('descriptionInput', '*동아리 소개를 입력해주세요');
+    validation.description = false;
+    return false;
+  }
+  
+  if (value.length > 500) {
+    showError('descriptionInput', '*동아리 소개는 최대 500자까지 가능합니다');
+    validation.description = false;
+    return false;
+  }
+  
+  clearError('descriptionInput');
+  validation.description = true;
+  return true;
+}
+
+console.log('common/validators.js 로드 완료');

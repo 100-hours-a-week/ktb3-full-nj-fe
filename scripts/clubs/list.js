@@ -1,39 +1,17 @@
-// scripts/clubs/list.js
+// 클럽 목록
 
-// ============================================
-// 상수 & 전역 상태
-// ============================================
+let currentFilter = 'all';
+let currentSort = 'name';
+let clubs = [];
+let myClubIds = new Set();
 
-let currentFilter = 'all';       // all / club / crew / my
-let currentSort = 'name';        // name / name-desc / members
-let clubs = [];                  // ClubResponse + isMine
-let myClubIds = new Set();       // 내가 가입한 모든 클럽 ID들
-
-// ============================================
-// 초기화
-// ============================================
-
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('동아리 페이지 초기화');
-  initClubsPage();
-});
-
-async function initClubsPage() {
-  await loadClubs();         // 전체 + 내 클럽 동시 로드
-  setupFilters();            // 필터/정렬 버튼 이벤트
-  setupTopButton();          // TOP 버튼
-  setupCreateClubButton();   // 동아리 생성 버튼(있다면)
-}
-
-// ============================================
-// 동아리 로드 (API)
-// ============================================
-
+// 클럽 목록 로드
 async function loadClubs() {
-  console.log('동아리 데이터 로드 (API 호출)');
+  console.log('클럽 목록 로드');
+  
   const grid = document.getElementById('clubsGrid');
   if (!grid) {
-    console.warn('#clubsGrid 요소를 찾을 수 없습니다.');
+    console.warn('#clubsGrid 요소를 찾을 수 없습니다');
     return;
   }
 
@@ -41,24 +19,25 @@ async function loadClubs() {
 
   try {
     const [allRes, myRes] = await Promise.allSettled([
-      getClubs(),        // GET /clubs
-      getMyClubs(),    // GET /club-joins/club  (새로 만들 함수)
+      getClubs(),
+      getMyClubs()
     ]);
 
     let apiClubs = [];
 
+    // 전체 클럽 목록
     if (allRes.status === 'fulfilled') {
       apiClubs = allRes.value.data || [];
     } else {
       console.warn('전체 클럽 조회 실패:', allRes.reason);
     }
 
-    // 내가 가입한 클럽 목록 → id 집합 만들기
+    // 내 클럽 목록
     if (myRes.status === 'fulfilled' && myRes.value.data) {
-      const joins = myRes.value.data; // List<ClubJoinResponse>
+      const joins = myRes.value.data;
       myClubIds = new Set(
         joins
-          .filter(j => j.status === 'ACTIVE') // 활동중만 내 클럽으로
+          .filter(j => j.status === 'ACTIVE')
           .map(j => j.clubId)
       );
     } else {
@@ -66,29 +45,26 @@ async function loadClubs() {
       myClubIds = new Set();
     }
 
-    // clubs 배열 구성 (백과 필드 통일)
+    // isMine 플래그 추가
     clubs = (apiClubs || []).map(c => ({
       ...c,
-      isMine: myClubIds.has(c.clubId)   // 🔥 여기서 내 클럽 여부 표시
+      isMine: myClubIds.has(c.clubId)
     }));
 
-    applySort();   // 정렬 → 필터 → 렌더링
+    applySort();
 
   } catch (error) {
-    console.error('동아리 로드 실패:', error);
-    renderClubs([]); // 실패 시 일단 비움
+    console.error('클럽 목록 로드 실패:', error);
+    renderClubs([]);
   }
 }
 
-
-// ============================================
-// 렌더링
-// ============================================
-
+// 클럽 카드 렌더링
 function renderClubs(list = clubs) {
   const grid = document.getElementById('clubsGrid');
   if (!grid) return;
 
+  // 빈 상태
   if (!list || list.length === 0) {
     grid.innerHTML = `
       <div class="empty-state">
@@ -99,7 +75,7 @@ function renderClubs(list = clubs) {
     return;
   }
 
-  grid.innerHTML = list.map((club) => {
+  grid.innerHTML = list.map(club => {
     const imgSrc = club.clubImage
       ? `${API_BASE_URL}${club.clubImage}`
       : null;
@@ -123,7 +99,7 @@ function renderClubs(list = clubs) {
           <div class="club-tags">
             ${
               (club.tags || [])
-                .map((tag) => `<span class="club-tag">${tag}</span>`)
+                .map(tag => `<span class="club-tag">${tag}</span>`)
                 .join('') || ''
             }
           </div>
@@ -137,35 +113,7 @@ function renderClubs(list = clubs) {
   }).join('');
 }
 
-
-// ============================================
-// 필터 & 정렬 (기존 로직에서 필드명만 clubName/memberCount로)
-// ============================================
-
-function setupFilters() {
-  document.querySelectorAll('.filter-tab').forEach((tab) => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.filter-tab').forEach((t) => t.classList.remove('active'));
-      tab.classList.add('active');
-
-      currentFilter = tab.dataset.filter; // all / club / crew / my
-      applyFilters();
-    });
-  });
-
-  document.querySelectorAll('.sort-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.sort-btn').forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      currentSort = btn.dataset.sort; // name / name-desc / members
-      applySort();
-    });
-  });
-}
-
-
-// 현재 clubs에 정렬 적용 후, 필터까지 적용
+// 정렬 적용
 function applySort() {
   console.log('정렬 적용:', currentSort);
 
@@ -174,9 +122,11 @@ function applySort() {
     return;
   }
 
+  // 내 클럽은 항상 최상단
   const myClubList = clubs.filter(c => c.isMine);
   const otherClubs = clubs.filter(c => !c.isMine);
 
+  // 나머지 클럽 정렬
   if (currentSort === 'name') {
     otherClubs.sort((a, b) => a.clubName.localeCompare(b.clubName, 'ko'));
   } else if (currentSort === 'name-desc') {
@@ -187,10 +137,10 @@ function applySort() {
 
   clubs = [...myClubList, ...otherClubs];
 
-  applyFilters(); // 정렬 후 필터 적용
+  applyFilters();
 }
 
-
+// 필터 적용
 function applyFilters() {
   console.log('필터 적용:', currentFilter);
 
@@ -209,6 +159,7 @@ function applyFilters() {
     filtered = filtered.filter(c => c.isMine);
   }
 
+  // 필터 결과 없음
   if (filtered.length === 0) {
     const grid = document.getElementById('clubsGrid');
     grid.innerHTML = `
@@ -223,16 +174,32 @@ function applyFilters() {
   renderClubs(filtered);
 }
 
+// 필터/정렬 버튼 이벤트
+function setupFilters() {
+  // 필터 탭
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
 
-// ============================================
-// 상세 페이지 / 생성 페이지 이동
-// ============================================
+      currentFilter = tab.dataset.filter;
+      applyFilters();
+    });
+  });
 
-function goToDetail(clubId) {
-  console.log('동아리 상세 페이지 이동:', clubId);
-  navigateTo(`club_detail.html?id=${clubId}`);
+  // 정렬 버튼
+  document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      currentSort = btn.dataset.sort;
+      applySort();
+    });
+  });
 }
 
+// 클럽 생성 버튼
 function setupCreateClubButton() {
   const btn = document.getElementById('createClubButton');
   if (!btn) return;
@@ -242,10 +209,7 @@ function setupCreateClubButton() {
   });
 }
 
-// ============================================
 // TOP 버튼
-// ============================================
-
 function setupTopButton() {
   const topButton = document.getElementById('topButton');
   if (!topButton) return;
@@ -261,6 +225,27 @@ function setupTopButton() {
   topButton.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+}
+
+// 클럽 상세 페이지로 이동
+function goToDetail(clubId) {
+  console.log('클럽 상세 이동:', clubId);
+  navigateTo(`club_detail.html?id=${clubId}`);
+}
+
+async function initClubsPage() {
+  console.log('클럽 목록 페이지 초기화');
+
+  await loadClubs();
+  setupFilters();
+  setupTopButton();
+  setupCreateClubButton();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initClubsPage);
+} else {
+  initClubsPage();
 }
 
 console.log('clubs/list.js 로드 완료');
