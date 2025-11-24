@@ -1,5 +1,9 @@
 // scripts/posts/list.js
 
+// ========= 상수 =========
+const DEFAULT_POST_IMAGE = '📄';
+const DEFAULT_EVENT_IMAGE = '🎉';
+
 // ========= 상태 변수 =========
 let currentPage = 1;
 let isLoading = false;
@@ -26,37 +30,82 @@ function formatDate(dateStr) {
   }
 }
 
+// ========= 이미지 URL 헬퍼 =========
+function getImageUrl(imageData) {
+  if (!imageData) return null;
+  
+  // 이미지 객체에서 URL 추출
+  let imagePath = imageData.url || imageData.imageUrl || imageData;
+  
+  // 이미 절대 URL이면 그대로 반환
+  if (imagePath.startsWith('http')) {
+    return imagePath;
+  }
+  
+  // 백엔드 경로 조합 (header.js와 동일한 방식)
+  return `${API_BASE_URL}${imagePath}`;
+}
+
+// ========= 렌더링 =========
 // ========= 렌더링 =========
 function createPostCardHTML(post) {
-  const typeBadge = (post.type && post.type !== 'general')
-    ? `<div class="post-type-badge ${post.type === 'notice' ? 'notice' : 'event'}">
-         ${post.type === 'notice' ? '공지' : '행사'}
-       </div>`
+  // 타입 뱃지
+  const isEvent = post.eventId || post.type === 'event';
+  const typeBadge = isEvent
+    ? `<div class="post-type-badge event">행사</div>`
     : '';
 
-  const image = post.image
-    ? `<div class="post-image-placeholder">${post.image}</div>`
-    : '<div class="post-image-placeholder">📄</div>';
+  // ✅ 이미지 처리 (header.js 방식과 동일)
+  let imageHTML = '';
+  if (post.images && post.images.length > 0) {
+    const imageUrl = getImageUrl(post.images[0]);
+    // 이미지 로드 실패 시 기본 아이콘으로 대체
+    const fallbackIcon = isEvent ? DEFAULT_EVENT_IMAGE : DEFAULT_POST_IMAGE;
+    imageHTML = `<img src="${imageUrl}" alt="${escapeHtml(post.title)}" onerror="this.parentElement.innerHTML='<div class=\\'post-image-placeholder\\'>${fallbackIcon}</div>'">`;
+  } else {
+    const defaultIcon = isEvent ? DEFAULT_EVENT_IMAGE : DEFAULT_POST_IMAGE;
+    imageHTML = `<div class="post-image-placeholder">${defaultIcon}</div>`;
+  }
+
+  // ✅ 작성자 프로필 이미지 (header.js 방식)
+  const authorName = post.author?.username || post.authorName || '익명';
+  let authorAvatarHTML = '👤';
+  
+  if (post.author?.profileImage) {
+    const profileUrl = `${API_BASE_URL}${post.author.profileImage}`;
+    authorAvatarHTML = `<img src="${profileUrl}" alt="${escapeHtml(authorName)}" class="author-avatar-img" onerror="this.outerHTML='👤'">`;
+  }
+
+  // 좋아요 상태
+  const isLiked = post.isLiked || false;
+  const likeClass = isLiked ? 'liked' : '';
+  const likeIcon = isLiked ? '❤️' : '🤍';
+
+  // 날짜 포맷
+  const dateStr = formatRelativeTime(post.createdAt);
 
   return `
-    <div class="post-card" data-id="${post.postId}">
+    <div class="post-card" data-id="${post.postId || post.id}" data-event-id="${post.eventId || ''}">
       ${typeBadge}
-      <div class="post-image">${image}</div>
+      <div class="post-image">${imageHTML}</div>
       <div class="post-divider"></div>
       <div class="post-content">
         <h3 class="post-title">${escapeHtml(post.title)}</h3>
         <p class="post-excerpt">${escapeHtml(post.content || '')}</p>
         <div class="post-meta">
           <div class="post-author">
-            <span class="author-avatar">${post.authorAvatar || '👤'}</span>
-            <span>${escapeHtml(post.authorName || '익명')}</span>
+            <span class="author-avatar">${authorAvatarHTML}</span>
+            <span>${escapeHtml(authorName)}</span>
           </div>
           <div class="post-stats">
-            <span class="stat-item">❤️ ${post.likes || 0}</span>
-            <span class="stat-item">💬 ${post.comments || 0}</span>
-            <span class="stat-item">👁️ ${post.views || 0}</span>
+            <button class="stat-item like-btn ${likeClass}" data-post-id="${post.postId || post.id}">
+              <span class="like-icon">${likeIcon}</span>
+              <span class="like-count">${post.likeCount || post.likes || 0}</span>
+            </button>
+            <span class="stat-item right">💬 ${post.commentCount || post.comments || 0}</span>
+            <span class="stat-item right">👁️ ${post.viewCount || post.views || 0}</span>
           </div>
-          <span class="post-date">${formatDate(post.createdAt)}</span>
+          <span class="post-date">${dateStr}</span>
         </div>
       </div>
       <div class="post-arrow">
@@ -64,6 +113,77 @@ function createPostCardHTML(post) {
       </div>
     </div>
   `;
+}
+
+// ========= 날짜 포맷 =========
+function formatRelativeTime(dateStr) {
+  try {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = now - date;
+    
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    
+    if (seconds < 60) return '방금 전';
+    if (minutes < 60) return `${minutes}분 전`;
+    if (hours < 24) return `${hours}시간 전`;
+    if (days < 7) return `${days}일 전`;
+    
+    // 7일 이상이면 날짜 표시
+    return date.toLocaleDateString('ko-KR', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  } catch (e) {
+    return dateStr || '';
+  }
+}
+
+// ========= 좋아요 기능 =========
+async function toggleLike(postId) {
+  try {
+    // API 호출 (토글 방식)
+    const response = await apiRequest(`/posts/${postId}/like`, {
+      method: 'POST'
+    });
+    
+    console.log('좋아요 토글 성공:', response);
+    
+    // UI 업데이트
+    const likeBtn = document.querySelector(`.like-btn[data-post-id="${postId}"]`);
+    if (!likeBtn) return;
+    
+    const isLiked = response.data.isLiked;
+    const likeCount = response.data.likeCount;
+    
+    // 아이콘 변경
+    const icon = likeBtn.querySelector('.like-icon');
+    icon.textContent = isLiked ? '❤️' : '🤍';
+    
+    // 개수 변경
+    const count = likeBtn.querySelector('.like-count');
+    count.textContent = likeCount;
+    
+    // 클래스 토글
+    if (isLiked) {
+      likeBtn.classList.add('liked');
+    } else {
+      likeBtn.classList.remove('liked');
+    }
+    
+  } catch (error) {
+    console.error('좋아요 실패:', error);
+    
+    if (error.status === 401) {
+      showToast('로그인이 필요합니다', 2000, 'error');
+    } else {
+      showToast('좋아요 처리 중 오류가 발생했습니다', 2000, 'error');
+    }
+  }
 }
 
 function renderPosts(posts, replace = false) {
@@ -160,10 +280,7 @@ function applyFiltersAndSortAndRender(replace = true) {
 }
 
 // ========= 이벤트 바인딩 =========
-// ========= 이벤트 바인딩 =========
 function setupFilterTabs() {
-  // ❌ 틀림: document.querySelectorAll('.filter-tab')
-  // ✅ 맞음: document.querySelectorAll('.type-tab')
   document.querySelectorAll('.type-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
@@ -194,10 +311,27 @@ function setupCardClickEvents() {
   if (container.dataset.attach === 'true') return;
 
   container.addEventListener('click', function(e) {
+    // 좋아요 버튼 클릭
+    const likeBtn = e.target.closest('.like-btn');
+    if (likeBtn) {
+      e.stopPropagation(); // 카드 클릭 이벤트 방지
+      const postId = likeBtn.dataset.postId;
+      toggleLike(postId);
+      return;
+    }
+    
+    // 카드 클릭 (상세 페이지 이동)
     const card = e.target.closest('.post-card');
     if (card) {
       const postId = card.dataset.id;
-      navigateTo(`post_detail.html?id=${postId}`);
+      const eventId = card.dataset.eventId;
+      
+      // 행사면 event_detail.html, 아니면 post_detail.html
+      if (eventId) {
+        navigateTo(`event_detail.html?id=${eventId}`);
+      } else {
+        navigateTo(`post_detail.html?id=${postId}`);
+      }
     }
   });
 
