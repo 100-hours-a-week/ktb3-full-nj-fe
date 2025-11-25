@@ -218,4 +218,25 @@ function validateDescription(value, validation) {
   return true;
 }
 
+//=========events=========
+// 시작/종료 일시 검증 (행사)
+function validateDateTimeRange(startsAt, endsAt, validation) {
+  const start = new Date(startsAt);
+  const end = new Date(endsAt);
+  
+  if (start >= end) {
+    if (validation) {
+      validation.endsAt = false;
+    }
+    showError('endsAtInput', '종료 일시는 시작 일시보다 늦어야 합니다');
+    return false;
+  }
+  
+  if (validation) {
+    validation.endsAt = true;
+  }
+  clearError('endsAtInput');
+  return true;
+}
+
 console.log('common/validators.js 로드 완료');
