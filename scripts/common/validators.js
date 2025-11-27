@@ -2,7 +2,8 @@
 
 import { showError, clearError } from '../common/util/utils.js';
 
-//=========auth/users=========
+// ==================== auth/users ====================
+
 // 이메일 검증 (회원가입/로그인)
 export function validateEmail(email, validation, isLogin = false) {
   if (!email || email.trim() === '') {
@@ -110,40 +111,8 @@ export function validateNickname(nickname, validation) {
   return true;
 }
 
-//=========posts=========
-// 제목 검증 (게시물 생성)
-export function validateTitle(title, validation) {
-  if (!title || title.trim() === '') {
-    showError('titleInput', '*제목을 입력해주세요');
-    validation.title = false;
-    return false;
-  }
-  
-  if (title.length > 26) { // 최대 26자
-    showError('titleInput', '*제목은 최대 26자까지 작성 가능합니다');
-    validation.title = false;
-    return false;
-  }
-  
-  clearError('titleInput');
-  validation.title = true;
-  return true;
-}
+// ==================== clubs ====================
 
-// 내용 검증 (게시물 생성)
-export function validateContent(content, validation) {
-  if (!content || content.trim() === '') { // 비어있지 않으면 OK
-    showError('contentInput', '*내용을 입력해주세요');
-    validation.content = false;
-    return false;
-  }
-  
-  clearError('contentInput');
-  validation.content = true;
-  return true;
-}
-
-//=========clubs=========
 // 동아리 이름 검증
 export function validateClubName(value, validation) {
   if (!value || value.trim() === '') {
@@ -220,7 +189,42 @@ export function validateDescription(value, validation) {
   return true;
 }
 
-//=========events=========
+// ==================== posts ====================
+
+// 제목 검증 (게시물 생성)
+export function validateTitle(title, validation) {
+  if (!title || title.trim() === '') {
+    showError('titleInput', '*제목을 입력해주세요');
+    validation.title = false;
+    return false;
+  }
+  
+  if (title.length > 26) { // 최대 26자
+    showError('titleInput', '*제목은 최대 26자까지 작성 가능합니다');
+    validation.title = false;
+    return false;
+  }
+  
+  clearError('titleInput');
+  validation.title = true;
+  return true;
+}
+
+// 내용 검증 (게시물 생성)
+export function validateContent(content, validation) {
+  if (!content || content.trim() === '') { // 비어있지 않으면 OK
+    showError('contentInput', '*내용을 입력해주세요');
+    validation.content = false;
+    return false;
+  }
+  
+  clearError('contentInput');
+  validation.content = true;
+  return true;
+}
+
+// ==================== events ====================
+
 // 시작/종료 일시 검증 (행사)
 export function validateDateTimeRange(startsAt, endsAt, validation) {
   const start = new Date(startsAt);

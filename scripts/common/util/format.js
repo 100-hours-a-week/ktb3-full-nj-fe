@@ -1,7 +1,7 @@
-// 포맷팅
+// ==================== 포맷팅 유틸 ====================
 
 // 숫자를 K 단위로 포맷팅 (좋아요수, 댓글수, 조회수)
-function formatNumber(num) {
+export function formatNumber(num) {
   if (num >= 100000) {
     return Math.floor(num / 1000) + 'k';
   } else if (num >= 10000) {
@@ -13,7 +13,7 @@ function formatNumber(num) {
 }
 
 // 날짜를 yyyy-mm-dd hh:mm:ss 형식으로 포맷팅
-function formatDate(date) {
+export function formatDate(date) {
   const d = new Date(date);
   
   const year = d.getFullYear();
@@ -28,7 +28,7 @@ function formatDate(date) {
 }
 
 // 제목을 지정된 길이로 제한 (초과 시 ... 표시)
-function truncateTitle(title, maxLength = 26) {
+export function truncateTitle(title, maxLength = 26) {
   if (title.length > maxLength) {
     return title.substring(0, maxLength) + '...';
   }
@@ -36,7 +36,7 @@ function truncateTitle(title, maxLength = 26) {
 }
 
 // 태그 파싱
-function parseTags(tagsInput) {
+export function parseTags(tagsInput) {
   if (!tagsInput || tagsInput.trim() === '') return [];
   
   return tagsInput
@@ -46,7 +46,7 @@ function parseTags(tagsInput) {
 }
 
 // 시간 포맷팅 (상대 시간)
-function formatTimeAgo(dateString) {
+export function formatTimeAgo(dateString) {
   const now = new Date();
   const past = new Date(dateString);
   const diffMs = now - past;
@@ -59,13 +59,13 @@ function formatTimeAgo(dateString) {
 }
 
 // 텍스트 자르기
-function truncateText(text, maxLength) {
+export function truncateText(text, maxLength) {
   if (!text || text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
 }
 
-// 게시물 목록 : 날짜 포맷 (상대 시간)
-function formatRelativeTime(dateStr) {
+// 게시물 목록: 날짜 포맷 (상대 시간)
+export function formatRelativeTime(dateStr) {
   try {
     const date = new Date(dateStr);
     const now = new Date();
@@ -91,6 +91,4 @@ function formatRelativeTime(dateStr) {
   }
 }
 
-window.formatRelativeTime = formatRelativeTime;
-
-console.log('common/format.js 로드 완료');
+console.log('common/util/format.js 로드 완료');

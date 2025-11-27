@@ -1,13 +1,9 @@
-import { apiRequest, storeToken, removeToken, API_BASE_URL } from './core.js';
+import { apiRequest, storeToken, removeToken} from './core.js';
 
 // ========== 인증 API ==========
 
-/**
- * 로그인
- */
-export async function login(email, password) {
-  console.log('🔑 로그인 API 호출');
-  
+// 로그인
+export async function login(email, password) {  
   const response = await apiRequest('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password })
@@ -20,12 +16,8 @@ export async function login(email, password) {
   return response;
 }
 
-/**
- * 회원가입
- */
-export async function signup(formData) {
-  console.log('📝 회원가입 API 호출');
-  
+// 회원가입
+export async function signup(formData) {  
   return await apiRequest('/auth/signup', {
     method: 'POST',
     body: formData,
@@ -33,26 +25,16 @@ export async function signup(formData) {
   });
 }
 
-/**
- * 로그아웃
- */
+// 로그아웃
 export async function logout() {
-  console.log('🚪 로그아웃 API 호출');
-  
   try {
-    await fetch(`${API_BASE_URL}/auth/logout`, {
-      method: 'POST',
-      credentials: 'include'
+    await apiRequest('/auth/logout', {
+      method: 'POST'
     });
-    
+  } catch (err) {
+    console.warn('서버 로그아웃 실패', err);
+  } finally {
     removeToken();
-    console.log('✅ 로그아웃 성공');
-    window.location.href = '/login.html';
-    
-  } catch (error) {
-    console.error('❌ 로그아웃 실패:', error);
-    removeToken();
-    window.location.href = '/login.html';
   }
 }
 

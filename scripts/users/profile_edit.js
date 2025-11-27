@@ -1,18 +1,40 @@
-// 프로필 수정
+// ==================== Import ====================
+
+import { getMyInfo } from '../common/api/user.js';
+import { apiRequest, removeToken } from '../common/api/core.js';
+
+import { 
+  showError, 
+  clearError, 
+  updateButtonState, 
+  showToast, 
+  navigateTo,
+  showModal,
+  confirmBack
+} from '../common/util/utils.js';
+
+import { validateNickname } from '../common/validators.js';
+
+import { 
+  processImageFile, 
+  getImageUrl 
+} from '../common/util/image_util.js';
+
+import { initHeader } from '../common/component/header.js';
+
+// ==================== 상태 관리 ====================
 
 let currentUserData = null;
 let newProfileImage = null;
 let hasChanges = false;
 
-// 프로필 수정 폼 검증
 const formValidation = {
   nickname: false
 };
 
-// 프로필 이미지 수정 이벤트
-function setupProfileImageEvent() {
-  console.log('프로필 수정 : 프로필 이미지 처리 중');
-  
+// ==================== 이벤트 핸들러 ====================
+
+function setupProfileImageEvent() {  
   const profileImageContainer = document.getElementById('profileImageContainer');
   const profileImageUpload = document.getElementById('profileImageUpload');
   const profileImageDiv = document.getElementById('profileImage');
@@ -42,9 +64,11 @@ function setupProfileImageEvent() {
              style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
       `;
       removeBtn.classList.add('show');
+      
     } catch (err) {
       console.error('프로필 이미지 처리 중 오류:', err);
       showToast('이미지 처리 중 오류가 발생했습니다', 2000, 'error');
+      
     } finally {
       profileImageUpload.value = '';
       checkForChanges();
@@ -87,10 +111,7 @@ function setupProfileImageEvent() {
   });
 }
 
-// 닉네임 수정 이벤트
-function setupNicknameEvents() {
-  console.log('프로필 수정 : 닉네임 처리 중');
-  
+function setupNicknameEvents() {  
   const nicknameInput = document.getElementById('nicknameInput');
   
   nicknameInput.addEventListener('blur', () => {
@@ -104,7 +125,6 @@ function setupNicknameEvents() {
   });
 }
 
-// 수정 여부 확인
 function checkForChanges() {
   if (!currentUserData) {
     hasChanges = false;
@@ -121,11 +141,10 @@ function checkForChanges() {
   updateButtonState(formValidation, hasChanges);
 }
 
-// '수정하기' 버튼 이벤트
-function setupEditButtonEvent() {
-  console.log('프로필 수정 : 수정하기 버튼 처리 중');
+function setupEditButtonEvent() {  
+  const profileForm = document.getElementById('profileForm');
   
-  document.getElementById('profileForm').addEventListener('submit', async (e) => {
+  profileForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     if (!hasChanges) {
@@ -171,6 +190,7 @@ function setupEditButtonEvent() {
       } else {
         showToast('수정 중 오류가 발생했습니다', 2000, 'error');
       }
+      
     } finally {
       btn.disabled = false;
       btn.textContent = originalText;
@@ -178,9 +198,7 @@ function setupEditButtonEvent() {
   });
 }
 
-async function updateUserInfo(nickname) {
-  console.log('프로필 수정: 프로필 수정 API 호출');
-  
+async function updateUserInfo(nickname) {  
   const formData = new FormData();
   formData.append('nickname', nickname);
   
@@ -190,14 +208,12 @@ async function updateUserInfo(nickname) {
   
   return await apiRequest('/users', {
     method: 'PATCH',
-    body: formData
+    body: formData,
+    isFormData: true
   });
 }
 
-// '회원 탈퇴' 버튼 이벤트
-function setupDeleteAccountEvent() {
-  console.log('프로필 수정 : 회원 탈퇴 버튼 처리 중');
-  
+function setupDeleteAccountEvent() {  
   const deleteBtn = document.querySelector('.btn-danger');
   if (!deleteBtn) return;
   
@@ -214,12 +230,15 @@ function setupDeleteAccountEvent() {
           showToast(response.message || '회원 탈퇴가 완료되었습니다');
           
           setTimeout(() => navigateTo('login.html'), 2000);
+          
         } catch (error) {
+          console.error('회원 탈퇴 실패:', error);
+          
           if (error.status === 401) {
             showToast('로그인이 필요합니다');
             setTimeout(() => navigateTo('login.html'), 1500);
           } else {
-            showToast('회원 탈퇴 중 오류가 발생했습니다');
+            showToast('회원 탈퇴 중 오류가 발생했습니다', 2000, 'error');
           }
         }
       }
@@ -227,7 +246,6 @@ function setupDeleteAccountEvent() {
   });
 }
 
-// 뒤로가기 버튼 업데이트
 function setupBackButton() {
   const backBtn = document.querySelector('.header-back');
   if (backBtn) {
@@ -243,10 +261,10 @@ function setupBackButton() {
   }
 }
 
+// ==================== 데이터 로드 ====================
+
 // 사용자 정보 로드
-async function loadUserData() {
-  console.log('사용자 정보 로드');
-  
+async function loadUserData() {  
   try {
     const response = await getMyInfo();
     currentUserData = response.data;
@@ -283,16 +301,17 @@ async function loadUserData() {
       showToast('로그인이 필요합니다');
       setTimeout(() => navigateTo('login.html'), 1500);
     } else {
-      showToast('사용자 정보를 불러오는데 실패했습니다');
+      showToast('사용자 정보를 불러오는데 실패했습니다', 2000, 'error');
     }
   }
 }
 
-// 페이지 초기화
+// ==================== 초기화 ====================
+
 async function init() {
-  console.log('프로필 수정 페이지 불러오는 중');
-  
+  await initHeader();
   await loadUserData();
+  
   setupBackButton();
   setupProfileImageEvent();
   setupNicknameEvents();
@@ -301,8 +320,6 @@ async function init() {
   
   hasChanges = false;
   updateButtonState(formValidation, hasChanges);
-  
-  console.log('프로필 수정 페이지 로딩 완료!');
 }
 
 if (document.readyState === 'loading') {

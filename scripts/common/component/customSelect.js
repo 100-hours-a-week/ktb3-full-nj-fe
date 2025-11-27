@@ -1,6 +1,7 @@
-// scripts/common/customSelect.js
+// ==================== 커스텀 셀렉트 컴포넌트 ====================
 
-function initCustomSelects() {
+// 커스텀 셀렉트 초기화
+export function initCustomSelects() {
   const allSelects = document.querySelectorAll('.custom-select');
 
   allSelects.forEach((wrapper) => {
@@ -11,7 +12,7 @@ function initCustomSelects() {
 
     if (!hiddenSelect || !trigger || !menu) return;
 
-    // 초기 값 동기화 (hidden select에 값이 있을 때)
+    // 초기 값 동기화
     syncFromHiddenSelect(wrapper, hiddenSelect, trigger, menu);
 
     // 트리거 클릭 → 열기/닫기
@@ -45,11 +46,11 @@ function initCustomSelects() {
         opt.classList.toggle('is-selected', opt === optionEl);
       });
 
-      // 🔹 트리거 텍스트만 업데이트 (화살표 span 안 붙임)
+      // 트리거 텍스트 업데이트
       trigger.textContent = label;
       wrapper.classList.toggle('has-value', value !== '');
 
-      // change 이벤트 발생시켜서 기존 검증/로직 재사용
+      // change 이벤트 발생
       hiddenSelect.dispatchEvent(new Event('change', { bubbles: true }));
 
       // 닫기
@@ -70,9 +71,6 @@ function closeAllCustomSelects(except) {
     }
   });
 }
-
-// 🔻 더 이상 화살표 span은 만들지 않으므로 이 함수는 제거
-// function createArrowElement() { ... }  ← 삭제
 
 function syncFromHiddenSelect(wrapper, hiddenSelect, trigger, menu) {
   if (!wrapper || !hiddenSelect || !trigger || !menu) return;
@@ -96,7 +94,6 @@ function syncFromHiddenSelect(wrapper, hiddenSelect, trigger, menu) {
   });
 
   if (matched) {
-    // 🔹 기존: textContent + arrow span
     trigger.textContent = matched.textContent.trim();
     wrapper.classList.add('has-value');
   } else {
@@ -106,14 +103,13 @@ function syncFromHiddenSelect(wrapper, hiddenSelect, trigger, menu) {
   }
 }
 
-function resetCustomSelectPlaceholder(wrapper, label) {
+// 커스텀 셀렉트 플레이스홀더 리셋
+export function resetCustomSelectPlaceholder(wrapper, label) {
   const trigger = wrapper.querySelector('.custom-select-trigger');
   if (!trigger) return;
 
-  // 🔹 placeholder도 텍스트만
   trigger.textContent = label;
   wrapper.classList.remove('has-value');
 }
 
-// 전역에서 쓸 수 있게 export 비슷하게
-window.initCustomSelects = initCustomSelects;
+console.log('common/component/customSelect.js 로드 완료');

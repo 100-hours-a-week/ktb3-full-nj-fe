@@ -1,3 +1,7 @@
+// ==================== Import ====================
+
+import { API_BASE_URL } from '../api/core.js';
+
 // ========== 이미지 URL 처리 ==========
 
 const DEFAULT_IMAGES = {

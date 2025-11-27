@@ -1,6 +1,21 @@
-// 메인 페이지
+// ==================== Import ====================
 
+// Mock API (나중에 실제 API로 교체)
 import { mockAPI } from './mock-api.js';
+
+// 헤더
+import { initHeader } from '../common/component/header.js';
+
+// 유틸 함수
+import { navigateTo } from '../common/util/utils.js';
+
+// 포맷 함수
+import { 
+  formatTimeAgo, 
+  truncateText 
+} from '../common/util/format.js';
+
+// ==================== 메인 페이지 ====================
 
 // 대시보드 데이터 로드
 async function loadDashboard() {
@@ -146,14 +161,31 @@ function setupPostCardClick() {
   });
 }
 
+function setupLogoClick() {
+  const logoBtn = document.getElementById('logoBtn');
+  if (logoBtn) {
+    logoBtn.style.cursor = 'pointer';
+    logoBtn.addEventListener('click', () => {
+      navigateTo('main.html');
+    });
+  }
+}
+
+// ==================== 초기화 ====================
+
 async function initMainPage() {
   console.log('메인 페이지 초기화');
 
+  await initHeader();
+  setupLogoClick();
   await loadDashboard();
+  
   setupSlider();
   setupTopButton();
   setupScrollDetection();
   setupPostCardClick();
+  
+  console.log('메인 페이지 로딩 완료!');
 }
 
 if (document.readyState === 'loading') {

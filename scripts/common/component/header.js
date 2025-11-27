@@ -1,4 +1,17 @@
-// 공통 헤더 초기화
+// ==================== Import ====================
+
+import { getMyInfo } from '../api/user.js';
+import { logout as apiLogout } from '../api/auth.js';
+
+import { 
+  showModal, 
+  showToast, 
+  navigateTo 
+} from '../util/utils.js';
+
+import { getImageUrl } from '../util/image_util.js';
+
+// ==================== 헤더 초기화 ====================
 
 // 프로필 이미지 로드
 async function loadHeaderProfile() {
@@ -12,9 +25,7 @@ async function loadHeaderProfile() {
     const response = await getMyInfo();
     const userData = response.data;
     
-    console.log('사용자 정보:', userData);
-    
-    const profileImageUrl = getImageUrl(userData.profileImage);
+    const profileImageUrl = getImageUrl(userData.profileImage, 'profile');
     profileAvatar.innerHTML = `<img src="${profileImageUrl}" alt="프로필">`;
     
   } catch (error) {
@@ -29,64 +40,58 @@ function setupDropdownMenu() {
   
   if (!profileMenu || !dropdownMenu) return;
   
-  // 프로필 메뉴 클릭
-  profileMenu.addEventListener('click', function(e) {
+  profileMenu.addEventListener('click', (e) => {
     e.stopPropagation();
     dropdownMenu.classList.toggle('active');
   });
+
+  dropdownMenu.addEventListener('click', async (e) => {
+    const item = e.target.closest('.dropdown-item');
+    if (!item) return;
+    
+    const navUrl = item.dataset.nav;
+    const action = item.dataset.action;
+    
+    dropdownMenu.classList.remove('active');
+    
+    if (navUrl) {
+      navigateTo(navUrl);
+    } else if (action === 'logout') {
+      await logout();
+    }
+  });
   
   // 외부 클릭 시 메뉴 닫기
-  document.addEventListener('click', function() {
+  document.addEventListener('click', () => {
     dropdownMenu.classList.remove('active');
   });
   
   console.log('드롭다운 메뉴 이벤트 설정 완료');
 }
 
-// 로그아웃
-async function logout() {
+// 로그아웃 (UI 처리 및 auth 모듈 호출)
+export async function logout() {
   showModal(
     '로그아웃 하시겠습니까?',
     '',
     async () => {
       try {
-        console.log('로그아웃 시도');
-        
-        await apiRequest('/auth/logout', {
-          method: 'POST'
-        });
-        
-        console.log('로그아웃 성공');
-        
-        removeToken();
+        await apiLogout();
         showToast('로그아웃 되었습니다');
-        
-        setTimeout(() => {
-          navigateTo('login.html');
-        }, 1000);
-        
+        setTimeout(() => navigateTo('login.html'), 1000);
       } catch (error) {
         console.error('로그아웃 실패:', error);
-        
-        removeToken();
         showToast('로그아웃 처리 중 오류가 발생했습니다', 2000, 'error');
-        
-        setTimeout(() => {
-          navigateTo('login.html');
-        }, 1000);
+        setTimeout(() => navigateTo('login.html'), 1000);
       }
     }
   );
 }
 
-// 헤더 초기화 함수
-async function initHeader() {
-  console.log('헤더 불러오는 중');
-  
+// 헤더 초기화 (export)
+export async function initHeader() {  
   await loadHeaderProfile();
   setupDropdownMenu();
-  
-  console.log('헤더 로딩 완료');
 }
 
-console.log('common/header.js 로드 완료');
+console.log('common/component/header.js 로드 완료');
