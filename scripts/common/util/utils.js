@@ -1,7 +1,5 @@
-//DOM 응용
-
 //=========에러 메세지=========
-function showError(inputId, message) {
+export function showError(inputId, message) {
   const input = document.getElementById(inputId);
   if (!input) {
     console.error(`showError: ${inputId} 요소를 찾을 수 없습니다`);
@@ -23,7 +21,7 @@ function showError(inputId, message) {
   console.log(`❌ 에러 표시: ${inputId} - ${message}`);
 }
 
-function clearError(inputId) {
+export function clearError(inputId) {
   const input = document.getElementById(inputId);
   if (!input) return;
   
@@ -37,7 +35,7 @@ function clearError(inputId) {
 }
 
 //=========버튼=========
-function updateButtonState(formValidation, isValid = true) {
+export function updateButtonState(formValidation, isValid = true) {
   const submitBtn = document.querySelector('button[type="submit"]');
   if (!submitBtn) return;
 
@@ -55,7 +53,7 @@ function updateButtonState(formValidation, isValid = true) {
 }
 
 //=========로딩 상태=========
-function setLoadingState(isLoading, text = '처리중...') {
+export function setLoadingState(isLoading, text = '처리중...') {
   const submitBtn = document.querySelector('button[type="submit"]');
   if (!submitBtn) return;
   
@@ -72,7 +70,7 @@ function setLoadingState(isLoading, text = '처리중...') {
   }
 }
 
-function showLoading(message = '로딩 중...') {
+export function showLoading(message = '로딩 중...') {
   const loading = document.getElementById('globalLoading');
   if (!loading) {
     console.warn('globalLoading 요소를 찾을 수 없습니다');
@@ -87,7 +85,7 @@ function showLoading(message = '로딩 중...') {
   loading.classList.add('active');
 }
 
-function hideLoading() {
+export function hideLoading() {
   const loading = document.getElementById('globalLoading');
   if (loading) {
     loading.classList.remove('active');
@@ -95,7 +93,7 @@ function hideLoading() {
 }
 
 //=========토스트 메시지&모달&포커싱=========
-function showToast(message, duration = 3000, type = 'success') {
+export function showToast(message, duration = 3000, type = 'success') {
   const existingToast = document.getElementById('toast');
   if (existingToast) {
     existingToast.remove();
@@ -146,7 +144,7 @@ function showToast(message, duration = 3000, type = 'success') {
   }, duration);
 }
 
-function showModal(title, message, onConfirm, onCancel) {
+export function showModal(title, message, onConfirm, onCancel) {
   const existingModal = document.getElementById('customModal');
   if (existingModal) {
     existingModal.remove();
@@ -246,7 +244,7 @@ function showModal(title, message, onConfirm, onCancel) {
   });
 }
 
-function focusElement(elementId) {
+export function focusElement(elementId) {
   const element = document.getElementById(elementId);
   if (element) {
     element.focus();
@@ -254,18 +252,18 @@ function focusElement(elementId) {
 }
 
 //=========페이지 이동=========
-function navigateTo(url, delay = 0) {
+export function navigateTo(url, delay = 0) {
   setTimeout(() => {
     window.location.href = url;
   }, delay);
 }
 
-function replaceLocation(url) {
+export function replaceLocation(url) {
   window.location.replace(url);
 }
 
 //=========localStorage=========
-function saveToStorage(key, value) {
+export function saveToStorage(key, value) {
   try {
     const stringValue = typeof value === 'object' 
       ? JSON.stringify(value) 
@@ -278,7 +276,7 @@ function saveToStorage(key, value) {
   }
 }
 
-function getFromStorage(key, defaultValue = null) {
+export function getFromStorage(key, defaultValue = null) {
   try {
     const value = localStorage.getItem(key);
     if (value === null) return defaultValue;
@@ -294,7 +292,7 @@ function getFromStorage(key, defaultValue = null) {
   }
 }
 
-function removeFromStorage(key) {
+export function removeFromStorage(key) {
   try {
     localStorage.removeItem(key);
     return true;
@@ -305,7 +303,7 @@ function removeFromStorage(key) {
 }
 
 //=========디바운스=========
-function debounce(func, wait = 300) {
+export function debounce(func, wait = 300) {
   let timeout;
   return function executedFunction(...args) {
     const later = () => {
@@ -318,7 +316,7 @@ function debounce(func, wait = 300) {
 }
 
 //=========뒤로가기 컨트롤=========
-function smartBack(fallbackUrl = 'main.html') {
+export function smartBack(fallbackUrl = 'main.html') {
   if (window.history.length > 1) {
     const referrer = document.referrer;
     if (referrer && referrer.includes(window.location.host)) {
@@ -329,7 +327,7 @@ function smartBack(fallbackUrl = 'main.html') {
   navigateTo(fallbackUrl);
 }
 
-function confirmBack(fallbackUrl, hasChanges, message = '변경 사항이 저장되지 않습니다.') {
+export function confirmBack(fallbackUrl, hasChanges, message = '변경 사항이 저장되지 않습니다.') {
   if (hasChanges) {
     showModal(
       '나가시겠습니까?',
@@ -344,7 +342,7 @@ function confirmBack(fallbackUrl, hasChanges, message = '변경 사항이 저장
 }
 
 // 게시물 목록 : HTML 이스케이프
-function escapeHtml(str) {
+export function escapeHtml(str) {
   if (!str) return '';
   return String(str)
     .replaceAll('&', '&amp;')
@@ -355,7 +353,7 @@ function escapeHtml(str) {
 }
 
 // 게시물 목록 : 선택된 동아리 이름 가져오기
-function getSelectedClubName() {
+export function getSelectedClubName() {
   const clubFilter = document.getElementById('clubFilter');
   
   if (!clubFilter || clubFilter.value === 'all') {
@@ -369,6 +367,4 @@ function getSelectedClubName() {
   return selectedClub ? (selectedClub.clubName || selectedClub.name) : 'C.Groove';
 }
 
-window.escapeHtml = escapeHtml;
-
-console.log('common/utils.js 로드 완료');
+console.log('common/util/utils.js 로드 완료');

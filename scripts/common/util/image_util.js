@@ -8,7 +8,7 @@ const DEFAULT_IMAGES = {
 };
 
 // 이미지 경로를 절대 URL로 변환
-function getImageUrl(imagePath, type = 'profile') {
+export function getImageUrl(imagePath, type = 'profile') {
   if (!imagePath || imagePath === 'null') {
     return DEFAULT_IMAGES[type] || DEFAULT_IMAGES.profile;
   }
@@ -21,7 +21,7 @@ function getImageUrl(imagePath, type = 'profile') {
 }
 
 // img 엘리먼트에 이미지 설정 (에러 처리 포함)
-function setImageSrc(imgElement, imagePath, type = 'profile') {
+export function setImageSrc(imgElement, imagePath, type = 'profile') {
   if (!imgElement) return;
   
   const url = getImageUrl(imagePath, type);
@@ -36,7 +36,7 @@ function setImageSrc(imgElement, imagePath, type = 'profile') {
 // ========== 이미지 파일 검증 ==========
 
 // 이미지 파일 유효성 검사
-function validateImageFile(file, options = {}) {
+export function validateImageFile(file, options = {}) {
   const {
     maxSizeBytes = 30 * 1024 * 1024,
     allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
@@ -66,7 +66,7 @@ function validateImageFile(file, options = {}) {
 // ========== 이미지 압축/리사이징 ==========
 
 // 이미지 파일을 압축하고 리사이징
-function processImageFile(
+export function processImageFile(
   file,
   {
     maxWidth = 1024,
@@ -145,10 +145,5 @@ function processImageFile(
     reader.readAsDataURL(file);
   });
 }
-
-window.getImageUrl = getImageUrl;
-window.setImageSrc = setImageSrc;
-window.validateImageFile = validateImageFile;
-window.processImageFile = processImageFile;
 
 console.log('common/image_util.js 로드 완료');

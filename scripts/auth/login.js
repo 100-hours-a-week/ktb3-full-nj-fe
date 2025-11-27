@@ -1,110 +1,113 @@
-// 로그인
+// ==================== Import ====================
 
-// 로그인 폼 검증
+import { login } from '../common/api/auth.js';
+
+import { 
+  showError, 
+  clearError, 
+  updateButtonState, 
+  showToast, 
+  navigateTo,
+  hideLoading
+} from '../common/util/utils.js';
+
+import { 
+  validateEmail, 
+  validatePassword 
+} from '../common/validators.js';
+ 
+// ==================== 상태 관리 ====================
+
 const formValidation = {
   email: false,
   password: false
 };
 
-// 이메일 입력 이벤트
+// ==================== 이벤트 핸들러 ====================
+
 function setupEmailEvents() {
-  console.log('로그인 : 이메일 처리 중');
   const emailInput = document.getElementById('emailInput');
   
-  emailInput.addEventListener('blur', function() {
-    validateEmail(this.value.trim(), formValidation, true);
+  emailInput.addEventListener('blur', () => {
+    validateEmail(emailInput.value.trim(), formValidation);
     updateButtonState(formValidation);
   });
   
-  emailInput.addEventListener('input', function() {
-    if (this.value) clearError('emailInput');
+  emailInput.addEventListener('input', () => {
+    if (emailInput.value) clearError('emailInput');
+    updateButtonState(formValidation);
   });
 }
 
-// 비밀번호 입력 이벤트
 function setupPasswordEvents() {
-  console.log('로그인 : 비밀번호 처리 중');
   const passwordInput = document.getElementById('passwordInput');
   
-  passwordInput.addEventListener('blur', function() {
-    validatePassword(this.value, formValidation, true);
+  passwordInput.addEventListener('blur', () => {
+    validatePassword(passwordInput.value.trim(), formValidation);
     updateButtonState(formValidation);
   });
   
-  passwordInput.addEventListener('input', function() {
-    if (this.value) clearError('passwordInput');
+  passwordInput.addEventListener('input', () => {
+    if (passwordInput.value) clearError('passwordInput');
+    updateButtonState(formValidation);
   });
 }
 
-// '로그인' 버튼 이벤트
-function setupLoginBtnEvents() {
-  console.log('로그인 시도');
+function setupFormSubmit() {
+  const loginForm = document.getElementById('loginForm');
   
-  document.getElementById('loginForm').addEventListener('submit', async function(e) {
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // 데이터 수집
-    const formData = {
-      email: document.getElementById('emailInput').value.trim(),
-      password: document.getElementById('passwordInput').value
-    };
+    const email = document.getElementById('emailInput').value.trim();
+    const password = document.getElementById('passwordInput').value.trim();
     
-    // 최종 검증
-    const isValid = 
-      validateEmail(formData.email, formValidation, true) &&
-      validatePassword(formData.password, formValidation, true);
-
-    if (!isValid) {
-      console.log('검증 실패 : 기본 검증');
+    // 검증
+    const emailValid = validateEmail(email, formValidation);
+    const passwordValid = validatePassword(password, formValidation);
+    
+    if (!emailValid || !passwordValid) {
       return;
     }
-
-    // 로그인 실행
-    await handleLogin(formData);
+    
+    const btn = e.target.querySelector('button[type="submit"]');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '로그인 중...';
+    
+    try {
+      const response = await login(email, password);
+      
+      console.log('로그인 성공!', response);
+      showToast('로그인 성공!');
+      
+      navigateTo('main.html', 1000);
+      
+    } catch (error) {
+      console.error('로그인 실패:', error);
+      
+      if (error.status === 401) {
+        showError('emailInput', '이메일 또는 비밀번호가 일치하지 않습니다');
+      } else {
+        showToast(error.message || '로그인 중 오류가 발생했습니다', 2000, 'error');
+      }
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
   });
 }
 
-// 로그인 처리
-async function handleLogin(formData) {
-  setLoadingState(true, '로그인 중..');
-  
-  try {    
-    const response = await login(formData.email, formData.password);
-    
-    console.log('로그인 성공!', response);
-    showToast(response.message);
-    navigateTo('main.html', 2000);
+// ==================== 초기화 ====================
 
-  } catch (error) {
-    console.error('로그인 실패:', error.message);
-    
-    // 에러 메시지 표시
-    if (error.status === 401) {
-      showToast('이메일 또는 비밀번호가 잘못되었습니다', 3000, 'error');
-    } else if (error.status === 400) {
-      showToast('입력 정보를 확인해주세요', 3000, 'error');
-    } else {
-      showToast('로그인 중 오류가 발생했습니다', 3000, 'error');
-    }
-    
-  } finally {
-    setLoadingState(false, '로그인');
-  }
-}
-
-// 로그인 페이지 초기화
-function init() {
-  console.log('로그인 페이지 불러오는 중');
-  
-  sessionStorage.removeItem('logoutAlertShown');
+function init() {  
+  hideLoading();
   
   setupEmailEvents();
   setupPasswordEvents();
-  setupLoginBtnEvents();
+  setupFormSubmit();
   
-  updateButtonState(formValidation);
-  
-  console.log('로그인 페이지 로딩 완료!');
+  updateButtonState(formValidation, false);
 }
 
 if (document.readyState === 'loading') {

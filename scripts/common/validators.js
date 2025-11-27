@@ -1,8 +1,10 @@
-// 검증 로직
+// ==================== Import ====================
+
+import { showError, clearError } from '../common/util/utils.js';
 
 //=========auth/users=========
 // 이메일 검증 (회원가입/로그인)
-function validateEmail(email, validation, isLogin = false) {
+export function validateEmail(email, validation, isLogin = false) {
   if (!email || email.trim() === '') {
     showError('emailInput', '*이메일을 입력해주세요.');
     validation.email = false;
@@ -30,7 +32,7 @@ function validateEmail(email, validation, isLogin = false) {
 }
 
 // 비밀번호 검증 (회원가입/로그인/비밀번호 변경)
-function validatePassword(password, validation, isLogin = false) {
+export function validatePassword(password, validation, isLogin = false) {
   if (!password) {
     showError('passwordInput', '*비밀번호를 입력해주세요');
     validation.password = false;
@@ -63,7 +65,7 @@ function validatePassword(password, validation, isLogin = false) {
 }
 
 // 비밀번호 확인 검증 (회원가입/비밀번호 변경)
-function validatePasswordConfirm(passwordConfirm, validation) {
+export function validatePasswordConfirm(passwordConfirm, validation) {
   const passwordInput = document.getElementById('passwordInput').value;
   
   if (!passwordConfirm) {
@@ -84,7 +86,7 @@ function validatePasswordConfirm(passwordConfirm, validation) {
 }
 
 // 닉네임 검증 (회원가입/프로필 수정)
-function validateNickname(nickname, validation) {
+export function validateNickname(nickname, validation) {
   if (!nickname || nickname.trim() === '') {
     showError('nicknameInput', '*닉네임을 입력해주세요.');
     validation.nickname = false;
@@ -110,7 +112,7 @@ function validateNickname(nickname, validation) {
 
 //=========posts=========
 // 제목 검증 (게시물 생성)
-function validateTitle(title, validation) {
+export function validateTitle(title, validation) {
   if (!title || title.trim() === '') {
     showError('titleInput', '*제목을 입력해주세요');
     validation.title = false;
@@ -129,7 +131,7 @@ function validateTitle(title, validation) {
 }
 
 // 내용 검증 (게시물 생성)
-function validateContent(content, validation) {
+export function validateContent(content, validation) {
   if (!content || content.trim() === '') { // 비어있지 않으면 OK
     showError('contentInput', '*내용을 입력해주세요');
     validation.content = false;
@@ -143,7 +145,7 @@ function validateContent(content, validation) {
 
 //=========clubs=========
 // 동아리 이름 검증
-function validateClubName(value, validation) {
+export function validateClubName(value, validation) {
   if (!value || value.trim() === '') {
     showError('clubNameInput', '*동아리 이름을 입력해주세요');
     validation.clubName = false;
@@ -162,7 +164,7 @@ function validateClubName(value, validation) {
 }
 
 // 한 줄 소개 검증
-function validateIntro(value, validation) {
+export function validateIntro(value, validation) {
   if (!value || value.trim() === '') {
     showError('clubSubtitleInput', '*한 줄 소개를 입력해주세요');
     validation.intro = false;
@@ -181,7 +183,7 @@ function validateIntro(value, validation) {
 }
 
 // 활동 장소 검증
-function validateLocation(value, validation) {
+export function validateLocation(value, validation) {
   if (!value || value.trim() === '') {
     showError('locationInput', '*활동 장소를 입력해주세요');
     validation.locationName = false;
@@ -200,7 +202,7 @@ function validateLocation(value, validation) {
 }
 
 // 동아리 소개 검증
-function validateDescription(value, validation) {
+export function validateDescription(value, validation) {
   if (!value || value.trim() === '') {
     showError('descriptionInput', '*동아리 소개를 입력해주세요');
     validation.description = false;
@@ -220,7 +222,7 @@ function validateDescription(value, validation) {
 
 //=========events=========
 // 시작/종료 일시 검증 (행사)
-function validateDateTimeRange(startsAt, endsAt, validation) {
+export function validateDateTimeRange(startsAt, endsAt, validation) {
   const start = new Date(startsAt);
   const end = new Date(endsAt);
   
