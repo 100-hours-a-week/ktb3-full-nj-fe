@@ -115,8 +115,16 @@ function setupBackButton() {
   const backBtn = document.querySelector('.header-back');
   if (backBtn) {
     backBtn.onclick = () => {
+      const passwordChanged = 
+        document.getElementById('passwordInput').value.trim() !== "";
+
+      const passwordConfirmChanged = 
+        document.getElementById('passwordConfirmInput').value.trim() !== "";
+
+      const hasUnsavedChanges = passwordChanged || passwordConfirmChanged;
+
       const fallback = 'main.html';
-      confirmBack(fallback, true, '수정 사항이 저장되지 않습니다.');
+      confirmBack(fallback, hasUnsavedChanges, '수정 사항이 저장되지 않습니다.');
     };
   }
 }

@@ -1,8 +1,5 @@
 // 공통 헤더 초기화
 
-// 기본 프로필 이미지 경로 (서버 제공)
-const DEFAULT_PROFILE_IMAGE = '/images/default-profile.png';
-
 // 프로필 이미지 로드
 async function loadHeaderProfile() {
   const profileMenu = document.getElementById('profileMenu');
@@ -17,18 +14,11 @@ async function loadHeaderProfile() {
     
     console.log('사용자 정보:', userData);
     
-    let imageUrl;
-    if (userData.profileImage) {
-      imageUrl = `${API_BASE_URL}${userData.profileImage}`;
-    } else {
-      imageUrl = DEFAULT_PROFILE_IMAGE;
-    }
-    
-    profileAvatar.innerHTML = `<img src="${imageUrl}" alt="프로필">`;
+    const profileImageUrl = getImageUrl(userData.profileImage);
+    profileAvatar.innerHTML = `<img src="${profileImageUrl}" alt="프로필">`;
     
   } catch (error) {
     console.error('프로필 로드 실패:', error);
-    profileAvatar.innerHTML = `<img src="${DEFAULT_PROFILE_IMAGE}" alt="프로필">`;
   }
 }
 
@@ -54,14 +44,37 @@ function setupDropdownMenu() {
 }
 
 // 로그아웃
-function logout() {
+async function logout() {
   showModal(
     '로그아웃 하시겠습니까?',
     '',
-    function() {
-      console.log('로그아웃');
-      removeToken();
-      navigateTo('login.html');
+    async () => {
+      try {
+        console.log('로그아웃 시도');
+        
+        await apiRequest('/auth/logout', {
+          method: 'POST'
+        });
+        
+        console.log('로그아웃 성공');
+        
+        removeToken();
+        showToast('로그아웃 되었습니다');
+        
+        setTimeout(() => {
+          navigateTo('login.html');
+        }, 1000);
+        
+      } catch (error) {
+        console.error('로그아웃 실패:', error);
+        
+        removeToken();
+        showToast('로그아웃 처리 중 오류가 발생했습니다', 2000, 'error');
+        
+        setTimeout(() => {
+          navigateTo('login.html');
+        }, 1000);
+      }
     }
   );
 }

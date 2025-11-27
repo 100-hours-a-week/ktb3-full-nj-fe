@@ -69,21 +69,9 @@ async function handleLogin(formData) {
   setLoadingState(true, '로그인 중..');
   
   try {    
-    // API 요청
-    const response = await apiRequest('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({
-        email: formData.email,
-        password: formData.password
-      })
-    });
+    const response = await login(formData.email, formData.password);
     
-    // 토큰 저장
-    if (response.data && response.data.accessToken && response.data.refreshToken) {
-      storeToken(response.data.accessToken, response.data.refreshToken);
-    }
-    
-    console.log('로그인 성공!');
+    console.log('로그인 성공!', response);
     showToast(response.message);
     navigateTo('main.html', 2000);
 
@@ -107,6 +95,8 @@ async function handleLogin(formData) {
 // 로그인 페이지 초기화
 function init() {
   console.log('로그인 페이지 불러오는 중');
+  
+  sessionStorage.removeItem('logoutAlertShown');
   
   setupEmailEvents();
   setupPasswordEvents();

@@ -370,6 +370,5 @@ function getSelectedClubName() {
 }
 
 window.escapeHtml = escapeHtml;
-window.getImageUrl = getImageUrl;
 
 console.log('common/utils.js 로드 완료');

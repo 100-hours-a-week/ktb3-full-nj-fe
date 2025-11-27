@@ -1,9 +1,8 @@
 // 프로필 수정
 
 let currentUserData = null;
-let profileImageFile = null;
+let newProfileImage = null;
 let hasChanges = false;
-let imageDeleted = false;
 
 // 프로필 수정 폼 검증
 const formValidation = {
@@ -36,8 +35,7 @@ function setupProfileImageEvent() {
         maxSizeBytes: 2 * 1024 * 1024
       });
 
-      profileImageFile = processedFile;
-      imageDeleted = false;
+      newProfileImage = processedFile;
 
       profileImageDiv.innerHTML = `
         <img src="${previewUrl}" alt="프로필"
@@ -59,13 +57,31 @@ function setupProfileImageEvent() {
     showModal(
       '프로필 사진 삭제',
       '프로필 사진을 삭제하시겠습니까?',
-      () => {
-        profileImageDiv.innerHTML = '<span class="profile-image-empty">+</span>';
-        profileImageFile = null;
-        imageDeleted = true;
-        removeBtn.classList.remove('show');
-        checkForChanges();
-        showToast('프로필 사진이 삭제되었습니다');
+      async () => {
+        try {
+          await apiRequest('/users/profile-image', { 
+            method: 'DELETE' 
+          });
+
+          profileImageDiv.innerHTML = '<span class="profile-image-empty">+</span>';
+          removeBtn.classList.remove('show');
+          
+          currentUserData.profileImage = null;
+          newProfileImage = null;
+          
+          showToast('프로필 사진이 삭제되었습니다');
+          checkForChanges();
+          
+        } catch (error) {
+          console.error('프로필 이미지 삭제 실패:', error);
+          
+          if (error.status === 401) {
+            showToast('로그인이 필요합니다');
+            setTimeout(() => navigateTo('login.html'), 1500);
+          } else {
+            showToast('이미지 삭제 중 오류가 발생했습니다', 2000, 'error');
+          }
+        }
       }
     );
   });
@@ -98,7 +114,7 @@ function checkForChanges() {
   
   const currentNickname = document.getElementById('nicknameInput').value.trim();
   const nicknameChanged = currentNickname !== currentUserData.nickname;
-  const imageChanged = (profileImageFile !== null) || imageDeleted;
+  const imageChanged = newProfileImage !== null;
   
   hasChanges = (nicknameChanged || imageChanged) && formValidation.nickname;
   
@@ -128,39 +144,32 @@ function setupEditButtonEvent() {
     btn.textContent = '수정 중...';
     
     try {
-      const updateData = {
-        nickname: nickname,
-        profileImage: profileImageFile,
-        deleteImage: imageDeleted
-      };
-      
-      const response = await updateUserInfo(updateData);
+      const response = await updateUserInfo(nickname);
       
       console.log('수정 완료!', response);
       showToast(response.message || '수정 완료');
       
       currentUserData.nickname = nickname;
-      if (imageDeleted) {
-        currentUserData.profileImage = null;
-      } else if (profileImageFile && response.data && response.data.profileImage) {
+      if (response.data && response.data.profileImage !== undefined) {
         currentUserData.profileImage = response.data.profileImage;
       }
       
-      profileImageFile = null;
-      imageDeleted = false;
+      newProfileImage = null;
       hasChanges = false;
       updateButtonState(formValidation, hasChanges);
       
       navigateTo('main.html', 2000);
       
     } catch (error) {
+      console.error('프로필 수정 실패:', error);
+      
       if (error.status === 409) {
         showError('nicknameInput', '이미 사용 중인 닉네임입니다');
       } else if (error.status === 401) {
         showToast('로그인이 필요합니다');
         setTimeout(() => navigateTo('login.html'), 1500);
       } else {
-        showToast('수정 중 오류가 발생했습니다');
+        showToast('수정 중 오류가 발생했습니다', 2000, 'error');
       }
     } finally {
       btn.disabled = false;
@@ -169,16 +178,14 @@ function setupEditButtonEvent() {
   });
 }
 
-async function updateUserInfo(updateData) {
-  console.log('프로필 수정 : 프로필 수정 API 호출');
+async function updateUserInfo(nickname) {
+  console.log('프로필 수정: 프로필 수정 API 호출');
   
   const formData = new FormData();
-  formData.append('nickname', updateData.nickname);
+  formData.append('nickname', nickname);
   
-  if (updateData.deleteImage) {
-    formData.append('deleteImage', 'true');
-  } else if (updateData.profileImage) {
-    formData.append('profileImage', updateData.profileImage);
+  if (newProfileImage) {
+    formData.append('profileImage', newProfileImage);
   }
   
   return await apiRequest('/users', {
@@ -225,7 +232,13 @@ function setupBackButton() {
   const backBtn = document.querySelector('.header-back');
   if (backBtn) {
     backBtn.onclick = () => {
-      confirmBack('main.html', hasChanges, '수정 사항이 저장되지 않습니다.');
+      const nicknameChanged = 
+        document.getElementById('nicknameInput').value.trim() !== currentUserData.nickname;
+      const imageChanged = newProfileImage !== null;
+      
+      const hasUnsavedChanges = nicknameChanged || imageChanged;
+      
+      confirmBack('main.html', hasUnsavedChanges, '수정 사항이 저장되지 않습니다.');
     };
   }
 }
@@ -247,7 +260,13 @@ async function loadUserData() {
     const removeBtn = document.getElementById('removeImageBtn');
     
     if (currentUserData.profileImage) {
-      profileImageDiv.innerHTML = `<img src="${API_BASE_URL}${currentUserData.profileImage}" alt="프로필">`;
+      const imageUrl = getImageUrl(currentUserData.profileImage, 'profile');
+      profileImageDiv.innerHTML = `
+        <img src="${imageUrl}" 
+             alt="프로필"
+             onerror="this.src='/assets/images/default-profile.png'"
+             style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+      `;
       removeBtn.classList.add('show');
     } else {
       profileImageDiv.innerHTML = '<span class="profile-image-empty">+</span>';
@@ -255,7 +274,7 @@ async function loadUserData() {
     }
     
     formValidation.nickname = true;
-    imageDeleted = false; 
+    newProfileImage = null;
     
   } catch (error) {
     console.error('사용자 정보 로드 실패:', error);

@@ -243,19 +243,6 @@ function updateHeroMessage() {
   subtitle.innerHTML = `${clubName} <span class="highlight">게시판</span>입니다.`;
 }
 
-// 이미지 URL 생성
-function getImageUrl(imageData) {
-  if (!imageData) return null;
-  
-  let imagePath = imageData.url || imageData.imageUrl || imageData;
-  
-  if (imagePath.startsWith('http')) {
-    return imagePath;
-  }
-  
-  return `${API_BASE_URL}${imagePath}`;
-}
-
 // 필터 및 정렬 적용
 function applyFiltersAndSortAndRender(replace = true) {
   console.log('필터/정렬 적용:', { currentClubFilter, currentTypeFilter, currentSort });
