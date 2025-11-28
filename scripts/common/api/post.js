@@ -1,15 +1,20 @@
 import { apiRequest } from './core.js';
 
-// ========== 게시글 API ==========
+// ==========================================
+// 게시글 (Post) API
+// ==========================================
 
-export async function getPosts(page = 1, limit = 10) {
+// 전체 게시물 조회
+export async function getPosts() {
   return await apiRequest('/posts', { method: 'GET' });
 }
 
+// 게시물 상세 조회
 export async function getPost(postId) {
   return await apiRequest(`/posts/${postId}`, { method: 'GET' });
 }
 
+// 게시물 생성
 export async function createPost(formData) {
   return await apiRequest('/posts', {
     method: 'POST',
@@ -18,6 +23,7 @@ export async function createPost(formData) {
   });
 }
 
+// 게시물 수정
 export async function updatePost(postId, formData) {
   return await apiRequest(`/posts/${postId}`, {
     method: 'PATCH',
@@ -26,6 +32,7 @@ export async function updatePost(postId, formData) {
   });
 }
 
+// 게시물 삭제
 export async function deletePost(postId) {
   return await apiRequest(`/posts/${postId}`, { method: 'DELETE' });
 }

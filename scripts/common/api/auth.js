@@ -1,6 +1,8 @@
-import { apiRequest, storeToken, removeToken} from './core.js';
+import { apiRequest, storeToken, removeToken } from './core.js';
 
-// ========== 인증 API ==========
+// ==========================================
+// 인증 (Auth) API
+// ==========================================
 
 // 로그인
 export async function login(email, password) {  
@@ -25,6 +27,25 @@ export async function signup(formData) {
   });
 }
 
+// 토큰 재발급 (Refresh)
+export async function refreshToken() {
+  try {
+    const response = await apiRequest('/auth/refresh', {
+      method: 'POST'
+    });
+
+    if (response.data && response.data.accessToken) {
+      storeToken(response.data.accessToken);
+    }
+    return response;
+
+  } catch (err) {
+    console.warn('토큰 재발급 실패: 다시 로그인 필요');
+    removeToken();
+    throw err;
+  }
+}
+
 // 로그아웃
 export async function logout() {
   try {
@@ -32,7 +53,7 @@ export async function logout() {
       method: 'POST'
     });
   } catch (err) {
-    console.warn('서버 로그아웃 실패', err);
+    console.warn('서버 로그아웃 요청 실패 (이미 만료됨 등)', err);
   } finally {
     removeToken();
   }
