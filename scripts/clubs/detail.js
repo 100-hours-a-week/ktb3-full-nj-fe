@@ -1,7 +1,22 @@
-// 클럽 상세
+// ==================== Import ====================
 
-// 더미 데이터
-const dummyClubDetail = {
+import { getClub } from '../common/api/club.js';
+import { API_BASE_URL } from '../common/api/core.js';
+
+import { 
+  showToast, 
+  showModal, 
+  navigateTo, 
+  smartBack 
+} from '../common/util/utils.js';
+
+import { formatDate } from '../common/util/format.js';
+
+import { initHeader } from '../common/component/header.js';
+
+// ==================== 더미 데이터 (임시) ====================
+
+const DUMMY_DATA = {
   totalMembers: 45,
   newMembers: 12,
   performances: 15,
@@ -55,56 +70,21 @@ const dummyClubDetail = {
   }
 };
 
-// URL에서 clubId 추출
+// ==================== 상태 관리 ====================
+
+let currentClub = null;
+let isMember = false;
+
+// ==================== URL 파라미터 ====================
+
 function getClubIdFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
   const clubId = urlParams.get('id');
   return clubId ? Number(clubId) : null;
 }
 
-// 가입 버튼 상태 업데이트
-function updateJoinButtonText(isMine) {
-  const joinBtn = document.getElementById('joinBtn');
-  if (!joinBtn) return;
+// ==================== 렌더링 ====================
 
-  if (isMine) {
-    joinBtn.textContent = '탈퇴하기';
-    joinBtn.classList.add('btn-outline');
-  } else {
-    joinBtn.textContent = '가입 신청';
-    joinBtn.classList.remove('btn-outline');
-  }
-}
-
-// 클럽 상세 정보 로드
-async function loadClubDetail(clubId) {
-  console.log('클럽 상세 조회:', clubId);
-  
-  const loading = document.getElementById('loadingIndicator');
-
-  try {
-    if (loading) loading.style.display = 'block';
-
-    const response = await getClub(clubId);
-    const club = response.data;
-
-    if (!club) {
-      console.warn('클럽 데이터 없음');
-      renderEmptyClub();
-      return;
-    }
-
-    renderClubDetail(club);
-
-  } catch (error) {
-    console.error('클럽 상세 로드 실패:', error);
-    renderErrorState();
-  } finally {
-    if (loading) loading.style.display = 'none';
-  }
-}
-
-// 클럽 상세 정보 렌더링
 function renderClubDetail(club) {
   console.log('클럽 상세 렌더링:', club);
 
@@ -120,7 +100,6 @@ function renderClubDetail(club) {
   updateJoinButtonText(club.isMine === true);
 }
 
-// 기본 정보 렌더링
 function renderBasicInfo(club) {
   const nameEl = document.getElementById('clubName');
   const subtitleEl = document.getElementById('clubSubtitle');
@@ -128,29 +107,24 @@ function renderBasicInfo(club) {
   const logoEl = document.getElementById('clubLogoLarge');
   const badgeEl = document.getElementById('clubBadge');
 
-  // 이름
   if (nameEl) {
     nameEl.textContent = club.clubName || '동아리 이름';
   }
 
-  // 한 줄 소개
   if (subtitleEl) {
     subtitleEl.textContent = club.intro || '';
   }
 
-  // 상세 설명
   if (descEl) {
     const text = club.description || '';
     descEl.innerHTML = text.replace(/\n/g, '<br>');
   }
 
-  // 로고
   if (logoEl) {
     if (club.clubImage) {
       const imgUrl = `${API_BASE_URL}${club.clubImage}`;
       logoEl.innerHTML = `<img src="${imgUrl}" alt="${club.clubName}">`;
     } else {
-      // 이미지 없으면 이니셜 표시
       const initial =
         (club.clubName && club.clubName.trim().charAt(0)) ||
         (club.intro && club.intro.trim().charAt(0)) ||
@@ -160,18 +134,16 @@ function renderBasicInfo(club) {
     }
   }
 
-  // "내 동아리" 뱃지
   if (badgeEl) {
     badgeEl.style.display = club.isMine === true ? 'inline-block' : 'none';
   }
 }
 
-// 메타 정보 렌더링
 function renderMetaInfo(club) {
   const metaEl = document.querySelector('.club-meta');
   if (!metaEl) return;
 
-  const members = club.memberCount ?? dummyClubDetail.totalMembers;
+  const members = club.memberCount ?? DUMMY_DATA.totalMembers;
   const location = club.locationName || '위치 미등록';
 
   metaEl.innerHTML = `
@@ -181,7 +153,6 @@ function renderMetaInfo(club) {
   `;
 }
 
-// 태그 렌더링
 function renderTags(tags) {
   const tagsEl = document.querySelector('.club-tags-large');
   if (!tagsEl) return;
@@ -197,14 +168,13 @@ function renderTags(tags) {
   }
 }
 
-// 통계 렌더링
 function renderStats(memberCount) {
   const statsEl = document.querySelector('.members-stats');
   if (!statsEl) return;
 
-  const totalMembers = memberCount ?? dummyClubDetail.totalMembers;
-  const newMembers = dummyClubDetail.newMembers;
-  const performances = dummyClubDetail.performances;
+  const totalMembers = memberCount ?? DUMMY_DATA.totalMembers;
+  const newMembers = DUMMY_DATA.newMembers;
+  const performances = DUMMY_DATA.performances;
 
   statsEl.innerHTML = `
     <div class="stat-card">
@@ -222,7 +192,6 @@ function renderStats(memberCount) {
   `;
 }
 
-// 갤러리 렌더링
 function renderGallery(gallery) {
   const grid = document.getElementById('galleryGrid');
   if (!grid) return;
@@ -230,7 +199,7 @@ function renderGallery(gallery) {
   const source =
     gallery && Array.isArray(gallery) && gallery.length > 0
       ? gallery
-      : dummyClubDetail.gallery;
+      : DUMMY_DATA.gallery;
 
   grid.innerHTML = source
     .map(item => `
@@ -245,7 +214,6 @@ function renderGallery(gallery) {
     .join('');
 }
 
-// 운영진 렌더링
 function renderLeadership(leaders) {
   const grid = document.querySelector('.leadership-grid');
   if (!grid) return;
@@ -253,7 +221,7 @@ function renderLeadership(leaders) {
   const source =
     leaders && Array.isArray(leaders) && leaders.length > 0
       ? leaders
-      : dummyClubDetail.leaders;
+      : DUMMY_DATA.leaders;
 
   grid.innerHTML = source
     .map(leader => `
@@ -268,7 +236,6 @@ function renderLeadership(leaders) {
     .join('');
 }
 
-// 최근 활동 렌더링
 function renderActivities(activities) {
   const list = document.getElementById('activityList');
   if (!list) return;
@@ -276,11 +243,11 @@ function renderActivities(activities) {
   const source =
     activities && Array.isArray(activities) && activities.length > 0
       ? activities
-      : dummyClubDetail.recentActivities;
+      : DUMMY_DATA.recentActivities;
 
   list.innerHTML = source
     .map(activity => `
-      <div class="activity-item" onclick="goToPost(${activity.id})">
+      <div class="activity-item" data-post-id="${activity.id}">
         <div class="activity-image">
           ${
             activity.imageUrl
@@ -298,12 +265,11 @@ function renderActivities(activities) {
     .join('');
 }
 
-// 연락처 렌더링
 function renderContact(contact) {
   const grid = document.querySelector('.contact-grid');
   if (!grid) return;
 
-  const src = { ...dummyClubDetail.contact, ...(contact || {}) };
+  const src = { ...DUMMY_DATA.contact, ...(contact || {}) };
 
   grid.innerHTML = `
     <div class="contact-item">
@@ -337,7 +303,6 @@ function renderContact(contact) {
   `;
 }
 
-// 빈 상태 렌더링
 function renderEmptyClub() {
   const container = document.querySelector('.detail-container');
   if (!container) return;
@@ -350,7 +315,6 @@ function renderEmptyClub() {
   `;
 }
 
-// 에러 상태 렌더링
 function renderErrorState() {
   const container = document.querySelector('.detail-container');
   if (!container) return;
@@ -359,73 +323,148 @@ function renderErrorState() {
     <div class="empty-state">
       <div class="empty-state-icon">⚠️</div>
       <div class="empty-state-text">동아리 정보를 불러오는 중 오류가 발생했습니다</div>
-      <button class="btn btn-primary" style="margin-top: 20px; width: auto;" onclick="location.reload()">
+      <button class="btn btn-primary" style="margin-top: 20px; width: auto;" id="retryBtn">
         다시 시도
       </button>
     </div>
   `;
-}
-
-// 가입 버튼 클릭
-function handleJoinClick() {
-  showModal(
-    '동아리 가입',
-    '가입 신청을 하시겠습니까?',
-    () => {
-      // TODO: 실제 가입 API 연동
-      showToast('가입 신청이 완료되었습니다');
-    }
-  );
-}
-
-// 공유 버튼 클릭
-function handleShareClick() {
-  const url = window.location.href;
   
-  if (navigator.clipboard) {
-    navigator.clipboard
-      .writeText(url)
-      .then(() => showToast('링크가 복사되었습니다'))
-      .catch(() => showToast('링크 복사에 실패했습니다', 2000, 'error'));
-  } else {
-    showToast('링크 복사 기능을 사용할 수 없습니다', 2000, 'error');
+  const retryBtn = document.getElementById('retryBtn');
+  if (retryBtn) {
+    retryBtn.addEventListener('click', () => location.reload());
   }
 }
 
-// 게시글로 이동
-function goToPost(postId) {
-  console.log('게시글 이동:', postId);
-  navigateTo(`post_detail.html?id=${postId}`);
-}
-
-// 버튼 이벤트 설정
-function setupButtons() {
+function updateJoinButtonText(isMine) {
   const joinBtn = document.getElementById('joinBtn');
-  const shareBtn = document.getElementById('shareBtn');
+  if (!joinBtn) return;
 
-  if (joinBtn) {
-    joinBtn.addEventListener('click', handleJoinClick);
-  }
-
-  if (shareBtn) {
-    shareBtn.addEventListener('click', handleShareClick);
+  if (isMine) {
+    joinBtn.textContent = '탈퇴하기';
+    joinBtn.classList.add('btn-outline');
+  } else {
+    joinBtn.textContent = '가입 신청';
+    joinBtn.classList.remove('btn-outline');
   }
 }
 
-// 뒤로가기 버튼 설정
+// ==================== 이벤트 핸들러 ====================
+
+function setupJoinButton() {
+  const joinBtn = document.getElementById('joinBtn');
+  if (!joinBtn) return;
+  
+  joinBtn.addEventListener('click', () => {
+    if (isMember) {
+      showModal(
+        '동아리 탈퇴',
+        '정말 탈퇴하시겠습니까?',
+        () => {
+          // TODO: 실제 탈퇴 API 연동
+          showToast('탈퇴되었습니다');
+          isMember = false;
+          updateJoinButtonText(false);
+        }
+      );
+    } else {
+      showModal(
+        '동아리 가입',
+        '가입 신청을 하시겠습니까?',
+        () => {
+          // TODO: 실제 가입 API 연동
+          showToast('가입 신청이 완료되었습니다');
+        }
+      );
+    }
+  });
+}
+
+function setupShareButton() {
+  const shareBtn = document.getElementById('shareBtn');
+  if (!shareBtn) return;
+  
+  shareBtn.addEventListener('click', () => {
+    const url = window.location.href;
+    
+    if (navigator.clipboard) {
+      navigator.clipboard
+        .writeText(url)
+        .then(() => showToast('링크가 복사되었습니다'))
+        .catch(() => showToast('링크 복사에 실패했습니다', 2000, 'error'));
+    } else {
+      showToast('링크 복사 기능을 사용할 수 없습니다', 2000, 'error');
+    }
+  });
+}
+
+function setupActivityClick() {
+  const list = document.getElementById('activityList');
+  if (!list) return;
+  
+  list.addEventListener('click', (e) => {
+    const item = e.target.closest('.activity-item');
+    if (!item) return;
+    
+    const postId = item.dataset.postId;
+    if (postId) {
+      console.log('게시글 이동:', postId);
+      navigateTo(`post_detail.html?id=${postId}`);
+    }
+  });
+}
+
 function setupBackButton() {
   const backBtn = document.querySelector('.header-back');
-  if (backBtn) {
-    backBtn.onclick = () => smartBack('club_list.html');
+  if (!backBtn) return;
+  
+  backBtn.onclick = () => smartBack('club_list.html');
+}
+
+// ==================== 데이터 로드 ====================
+
+async function loadClubDetail(clubId) {
+  console.log('클럽 상세 조회:', clubId);
+  
+  try {
+    const response = await getClub(clubId);
+    const club = response.data;
+
+    if (!club) {
+      console.warn('클럽 데이터 없음');
+      renderEmptyClub();
+      return;
+    }
+
+    currentClub = club;
+    isMember = club.isMine === true;
+    
+    renderClubDetail(club);
+
+  } catch (error) {
+    console.error('클럽 상세 로드 실패:', error);
+    
+    if (error.status === 404) {
+      renderEmptyClub();
+    } else if (error.status === 401) {
+      showToast('로그인이 필요합니다');
+      setTimeout(() => navigateTo('login.html'), 1500);
+    } else {
+      renderErrorState();
+    }
   }
 }
 
-// 페이지 초기화
-async function initClubDetailPage() {
+// ==================== 초기화 ====================
+
+async function init() {
   console.log('클럽 상세 페이지 초기화');
 
+  await initHeader();
+
   setupBackButton();
-  setupButtons();
+  setupJoinButton();
+  setupShareButton();
+  setupActivityClick();
 
   const clubId = getClubIdFromUrl();
   if (!clubId) {
@@ -439,9 +478,9 @@ async function initClubDetailPage() {
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initClubDetailPage);
+  document.addEventListener('DOMContentLoaded', init);
 } else {
-  initClubDetailPage();
+  init();
 }
 
 console.log('clubs/detail.js 로드 완료');

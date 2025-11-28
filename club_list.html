@@ -19,7 +19,7 @@
     <!-- 헤더 -->
     <header class="header">
       <div class="header-container">
-        <h1 class="logo bagel-fat-one-regular" onclick="location.href='main.html'" style="cursor: pointer;">C.Groove</h1>
+        <h1 class="logo bagel-fat-one-regular" id="logoBtn">C.Groove</h1>
         <nav class="nav">
           <a href="genre.html" class="nav-link kimm-light">장르</a>
           <a href="club_list.html" class="nav-link kimm-light active">동아리</a>
@@ -28,9 +28,9 @@
           <div class="header-profile" id="profileMenu">
             <span class="profile-avatar"></span>
             <div class="dropdown-menu" id="dropdownMenu">
-              <div class="dropdown-item" onclick="location.href='profile_edit.html'">회원정보수정</div>
-              <div class="dropdown-item" onclick="location.href='password_edit.html'">비밀번호수정</div>
-              <div class="dropdown-item" onclick="logout()">로그아웃</div>
+              <div class="dropdown-item" data-nav="profile_edit.html">회원정보수정</div>
+              <div class="dropdown-item" data-nav="password_edit.html">비밀번호수정</div>
+              <div class="dropdown-item" data-action="logout">로그아웃</div>
             </div>
           </div>
         </nav>
@@ -54,12 +54,11 @@
               <button class="sort-btn active" data-sort="name">내림차순</button>
               <button class="sort-btn" data-sort="name-desc">오름차순</button>
             </div>
-            <button 
-              class="create-club-btn"
-              onclick="location.href='club_create.html'">
+            <button class="create-club-btn" id="createClubBtn">
               + NEW
             </button>
           </div>
+        </div>
       </section>
       
       <!-- 동아리 그리드 -->
@@ -73,22 +72,10 @@
     </main>
     
     <!-- TOP 버튼 -->
-    <button class="top-button" id="topButton">
+    <button class="top-button" id="topButton" aria-label="맨 위로">
       TOP
     </button>
   </div>
-  
-  <script src="scripts/common/utils.js"></script>
-  <script src="scripts/common/api.js"></script>
-  <script src="scripts/common/header.js"></script>
-  <script src="scripts/clubs/list.js"></script>
-  
-  <script>
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initHeader);
-    } else {
-      initHeader();
-    }
-  </script>
+  <script type="module" src="scripts/clubs/list.js"></script>
 </body>
 </html>

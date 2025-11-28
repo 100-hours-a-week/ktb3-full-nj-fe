@@ -20,7 +20,7 @@
   <div class="page-container">
     <header class="header">
       <div class="header-container">
-        <button class="header-back" onclick="history.back()">‹</button>
+        <button class="header-back">‹</button>
         <h1 class="logo bagel-fat-one-regular">C.Groove</h1>
         <div class="header-spacer"></div>
       </div>
@@ -127,7 +127,7 @@
             <button 
               type="button" 
               class="btn btn-secondary"
-              onclick="history.back()">
+              id="cancelBtn">
               취소
             </button>
             <button 
@@ -140,20 +140,6 @@
       </div>
     </div>
   </div>
-  
-  <script src="scripts/common/utils.js"></script>
-  <script src="scripts/common/format.js"></script>
-  <script src="scripts/common/api.js"></script>
-  <script src="scripts/common/header.js"></script>
-  <script src="scripts/common/image_util.js"></script>
-  <script src="scripts/clubs/create.js"></script>
-
-  <script>
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initHeader);
-    } else {
-      initHeader();
-    }
-  </script>
+  <script type="module" src="scripts/clubs/create.js"></script>
 </body>
 </html>

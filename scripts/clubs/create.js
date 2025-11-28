@@ -1,4 +1,29 @@
-// 클럽 생성
+// ==================== Import ====================
+import { createClub } from '../common/api/club.js';
+
+import { 
+  showError, 
+  clearError, 
+  updateButtonState, 
+  showToast, 
+  navigateTo,
+  confirmBack
+} from '../common/util/utils.js';
+
+import { 
+  validateClubName,
+  validateIntro,
+  validateLocation,
+  validateDescription
+} from '../common/validators.js';
+
+import { processImageFile } from '../common/util/image_util.js';
+
+import { parseTags } from '../common/util/format.js';
+
+import { initHeader } from '../common/component/header.js';
+
+// ==================== 상태 관리 ====================
 
 const clubFormValidation = {
   clubName: false,
@@ -9,10 +34,9 @@ const clubFormValidation = {
 
 let clubImageFile = null;
 
-// 대표 이미지 업로드
-function setupClubImageEvent() {
-  console.log('클럽 생성 : 대표 이미지 처리 중');
+// ==================== 이벤트 핸들러 ====================
 
+function setupClubImageEvent() {
   const container = document.getElementById('clubImageContainer');
   const fileInput = document.getElementById('clubImageUpload');
 
@@ -56,77 +80,67 @@ function setupClubImageEvent() {
   });
 }
 
-// 동아리 이름 입력
 function setupClubNameEvents() {
-  console.log('클럽 생성 : 이름 처리 중');
   const input = document.getElementById('clubNameInput');
   if (!input) return;
 
-  input.addEventListener('blur', function() {
-    validateClubName(this.value.trim(), clubFormValidation);
+  input.addEventListener('blur', () => {
+    validateClubName(input.value.trim(), clubFormValidation);
     updateButtonState(clubFormValidation);
   });
 
-  input.addEventListener('input', function() {
-    if (this.value.trim()) clearError('clubNameInput');
+  input.addEventListener('input', () => {
+    if (input.value.trim()) clearError('clubNameInput');
     updateButtonState(clubFormValidation);
   });
 }
 
-// 한 줄 소개 입력
 function setupIntroEvents() {
-  console.log('클럽 생성 : 한 줄 소개 처리 중');
   const input = document.getElementById('clubSubtitleInput');
   if (!input) return;
 
-  input.addEventListener('blur', function() {
-    validateIntro(this.value.trim(), clubFormValidation);
+  input.addEventListener('blur', () => {
+    validateIntro(input.value.trim(), clubFormValidation);
     updateButtonState(clubFormValidation);
   });
 
-  input.addEventListener('input', function() {
-    if (this.value.trim()) clearError('clubSubtitleInput');
+  input.addEventListener('input', () => {
+    if (input.value.trim()) clearError('clubSubtitleInput');
     updateButtonState(clubFormValidation);
   });
 }
 
-// 활동 장소 입력
 function setupLocationEvents() {
-  console.log('클럽 생성 : 위치 처리 중');
   const input = document.getElementById('locationInput');
   if (!input) return;
 
-  input.addEventListener('blur', function() {
-    validateLocation(this.value.trim(), clubFormValidation);
+  input.addEventListener('blur', () => {
+    validateLocation(input.value.trim(), clubFormValidation);
     updateButtonState(clubFormValidation);
   });
 
-  input.addEventListener('input', function() {
-    if (this.value.trim()) clearError('locationInput');
+  input.addEventListener('input', () => {
+    if (input.value.trim()) clearError('locationInput');
     updateButtonState(clubFormValidation);
   });
 }
 
-// 동아리 소개 입력
 function setupDescriptionEvents() {
-  console.log('클럽 생성 : 소개 처리 중');
   const input = document.getElementById('descriptionInput');
   if (!input) return;
 
-  input.addEventListener('blur', function() {
-    validateDescription(this.value.trim(), clubFormValidation);
+  input.addEventListener('blur', () => {
+    validateDescription(input.value.trim(), clubFormValidation);
     updateButtonState(clubFormValidation);
   });
 
-  input.addEventListener('input', function() {
-    if (this.value.trim()) clearError('descriptionInput');
+  input.addEventListener('input', () => {
+    if (input.value.trim()) clearError('descriptionInput');
     updateButtonState(clubFormValidation);
   });
 }
 
-// 폼 제출
 function setupClubSubmitEvent() {
-  console.log('클럽 생성 : 제출 이벤트 설정 중');
   const form = document.getElementById('clubCreateForm');
   if (!form) return;
 
@@ -181,13 +195,7 @@ function setupClubSubmitEvent() {
         console.log('클럽 이미지 없음');
       }
 
-      console.log('클럽 생성 API 호출');
-      const response = await apiRequest('/clubs', {
-        method: 'POST',
-        body: formData
-      });
-
-      console.log('클럽 생성 성공:', response);
+      const response = await createClub(formData);
       showToast(response.message || '동아리가 생성되었습니다');
       navigateTo('club_list.html', 1500);
       
@@ -217,7 +225,6 @@ function setupClubSubmitEvent() {
   });
 }
 
-// 뒤로가기
 function setupClubBackButton() {
   const backBtn = document.querySelector('.header-back');
   if (!backBtn) return;
@@ -234,8 +241,26 @@ function setupClubBackButton() {
   };
 }
 
-function initClubCreatePage() {
-  console.log('클럽 생성 페이지 불러오는 중');
+function setupCancelButton() {
+  const cancelBtn = document.getElementById('cancelBtn');
+  if (!cancelBtn) return;
+
+  cancelBtn.onclick = () => {
+    const hasContent =
+      document.getElementById('clubNameInput').value.trim() ||
+      document.getElementById('clubSubtitleInput').value.trim() ||
+      document.getElementById('locationInput').value.trim() ||
+      document.getElementById('descriptionInput').value.trim() ||
+      !!clubImageFile;
+
+    confirmBack('club_list.html', hasContent, '작성 중인 내용이 사라집니다.');
+  };
+}
+
+// ==================== 초기화 ====================
+
+async function initClubCreatePage() {
+  await initHeader();
 
   setupClubImageEvent();
   setupClubNameEvents();
@@ -244,10 +269,9 @@ function initClubCreatePage() {
   setupDescriptionEvents();
   setupClubSubmitEvent();
   setupClubBackButton();
+  setupCancelButton();
 
   updateButtonState(clubFormValidation);
-
-  console.log('클럽 생성 페이지 로딩 완료!');
 }
 
 if (document.readyState === 'loading') {
@@ -256,4 +280,4 @@ if (document.readyState === 'loading') {
   initClubCreatePage();
 }
 
-console.log('clubs/create.js 로드 완료');
+console.log('club/create.js 로드 완료');

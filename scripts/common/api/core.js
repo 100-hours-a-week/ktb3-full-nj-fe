@@ -33,7 +33,6 @@ function getErrorMessage(status) {
 export function storeToken(accessToken) {
   localStorage.setItem('accessToken', accessToken);
   localStorage.setItem('tokenStoredAt', Date.now());
-  console.log('✅ accessToken 저장 완료');
 }
 
 export function getAccessToken() {
@@ -58,7 +57,6 @@ export function getAccessToken() {
 export function removeToken() {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('tokenStoredAt');
-  console.log('✅ accessToken 삭제 완료');
 }
 
 export function isLoggedIn() {
@@ -71,12 +69,10 @@ let isRefreshing = false;
 
 export async function refreshAccessToken() {
   if (isRefreshing) {
-    console.log('⏳ 이미 토큰 재발급 중...');
     return false;
   }
   
   isRefreshing = true;
-  console.log('🔄 토큰 재발급 시도');
   
   try {
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
@@ -90,13 +86,11 @@ export async function refreshAccessToken() {
       
       if (data.data && data.data.accessToken) {
         storeToken(data.data.accessToken);
-        console.log('✅ 토큰 재발급 성공');
         isRefreshing = false;
         return true;
       }
     }
     
-    console.error('❌ 토큰 재발급 실패');
     isRefreshing = false;
     return false;
     
@@ -143,12 +137,10 @@ export async function apiRequest(endpoint, options = {}) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
   
-  console.log(`➡️ API 요청: ${config.method} ${url}`);
-  
   try {
     const response = await fetch(url, config);
     
-    console.log(`✅ ${config.method} ${url}`, response.status);
+    console.log(`😎 ${config.method} ${url}`, response.status);
     
     // 401 처리
     if (response.status === 401 && !endpoint.includes('/auth/refresh')) {
@@ -157,7 +149,7 @@ export async function apiRequest(endpoint, options = {}) {
       const refreshed = await refreshAccessToken();
       
       if (refreshed) {
-        console.log('✅ 토큰 재발급 성공 - 요청 재시도');
+        console.log('토큰 재발급 성공 - 요청 재시도');
         config.headers['Authorization'] = `Bearer ${getAccessToken()}`;
         const retryResponse = await fetch(url, config);
         
@@ -167,7 +159,7 @@ export async function apiRequest(endpoint, options = {}) {
         
         return await retryResponse.json();
       } else {
-        console.log('❌ 토큰 재발급 실패 - 로그인 필요');
+        console.log('토큰 재발급 실패 - 로그인 필요');
         handleLogoutRedirect();
         return;
       }
@@ -175,7 +167,7 @@ export async function apiRequest(endpoint, options = {}) {
     
     // 204 No Content 처리
     if (response.status === 204) {
-      console.log('✅ 응답: 204 No Content');
+      console.log('😎 응답: 204 No Content');
       return { success: true };
     }
     
@@ -190,7 +182,7 @@ export async function apiRequest(endpoint, options = {}) {
       data = text ? { message: text } : { success: true };
     }
     
-    console.log('✅ 응답 (' + response.status + '):', data);
+    console.log('☺️ 응답 (' + response.status + '):', data);
     
     // 에러 응답 처리
     if (!response.ok) {
@@ -204,7 +196,7 @@ export async function apiRequest(endpoint, options = {}) {
     return data;
     
   } catch (error) {
-    console.error('❌ API 요청 실패:', error);
+    console.error('API 요청 실패:', error);
     
     if (error instanceof ApiError) {
       throw error;

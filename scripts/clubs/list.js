@@ -1,21 +1,32 @@
-// 클럽 목록
+// ==================== Import ====================
+
+import { API_BASE_URL } from '../common/api/core.js';
+import { getClubs, getMyClubs } from '../common/api/club.js';
+
+import { 
+  navigateTo,
+  hideLoading
+} from '../common/util/utils.js';
+
+import { initHeader } from '../common/component/header.js';
+
+// ==================== 상태 관리 ====================
 
 let currentFilter = 'all';
 let currentSort = 'name';
 let clubs = [];
 let myClubIds = new Set();
 
-// 클럽 목록 로드
+// ==================== 데이터 로드 ====================
+
 async function loadClubs() {
-  console.log('클럽 목록 로드');
-  
   const grid = document.getElementById('clubsGrid');
   if (!grid) {
     console.warn('#clubsGrid 요소를 찾을 수 없습니다');
     return;
   }
 
-  grid.innerHTML = '';
+  grid.innerHTML = '<div class="loading-message">로딩 중...</div>';
 
   try {
     const [allRes, myRes] = await Promise.allSettled([
@@ -59,29 +70,27 @@ async function loadClubs() {
   }
 }
 
-// 클럽 카드 렌더링
+// ==================== 렌더링 ====================
+
 function renderClubs(list = clubs) {
   const grid = document.getElementById('clubsGrid');
   if (!grid) return;
 
-  // 빈 상태
   if (!list || list.length === 0) {
-    grid.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">🎭</div>
-        <div class="empty-state-text">등록된 동아리가 없습니다</div>
-      </div>
-    `;
+    showEmptyState("등록된 동아리가 없습니다");
     return;
   }
 
-  grid.innerHTML = list.map(club => {
-    const imgSrc = club.clubImage
-      ? `${API_BASE_URL}${club.clubImage}`
-      : null;
+  grid.innerHTML = list.map(createClubCard).join('');
+}
 
-    return `
-      <div class="club-card ${club.isMine ? 'my-club' : ''}" onclick="goToDetail(${club.clubId})">
+function createClubCard(club) {
+  const imgSrc = club.clubImage
+    ? `${API_BASE_URL}${club.clubImage}`
+    : null;
+
+  return `
+      <div class="club-card ${club.isMine ? 'my-club' : ''}" data-club-id="${club.clubId}">
         <div class="club-logo">
           ${
             imgSrc
@@ -110,13 +119,23 @@ function renderClubs(list = clubs) {
         </div>
       </div>
     `;
-  }).join('');
 }
 
-// 정렬 적용
-function applySort() {
-  console.log('정렬 적용:', currentSort);
+function showEmptyState(message = '등록된 동아리가 없습니다') {
+  const grid = document.getElementById('clubsGrid');
+  if (!grid) return;
+  
+  grid.innerHTML = `
+    <div class="empty-state">
+      <div class="empty-state-icon">🎭</div>
+      <div class="empty-state-text">${message}</div>
+    </div>
+  `;
+}
 
+// ==================== 필터/정렬 ====================
+
+function applySort() {
   if (!clubs || clubs.length === 0) {
     renderClubs([]);
     return;
@@ -140,10 +159,7 @@ function applySort() {
   applyFilters();
 }
 
-// 필터 적용
 function applyFilters() {
-  console.log('필터 적용:', currentFilter);
-
   if (!clubs || clubs.length === 0) {
     renderClubs([]);
     return;
@@ -159,24 +175,18 @@ function applyFilters() {
     filtered = filtered.filter(c => c.isMine);
   }
 
-  // 필터 결과 없음
   if (filtered.length === 0) {
     const grid = document.getElementById('clubsGrid');
-    grid.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-state-icon">🎭</div>
-        <div class="empty-state-text">조건에 맞는 동아리가 없습니다</div>
-      </div>
-    `;
+    showEmptyState("조건에 맞는 동아리가 없습니다");
     return;
   }
 
   renderClubs(filtered);
 }
 
-// 필터/정렬 버튼 이벤트
+// ==================== 이벤트 핸들러 ====================
+
 function setupFilters() {
-  // 필터 탭
   document.querySelectorAll('.filter-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
@@ -187,7 +197,6 @@ function setupFilters() {
     });
   });
 
-  // 정렬 버튼
   document.querySelectorAll('.sort-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
@@ -199,9 +208,8 @@ function setupFilters() {
   });
 }
 
-// 클럽 생성 버튼
 function setupCreateClubButton() {
-  const btn = document.getElementById('createClubButton');
+  const btn = document.getElementById('createClubBtn');
   if (!btn) return;
 
   btn.addEventListener('click', () => {
@@ -209,7 +217,22 @@ function setupCreateClubButton() {
   });
 }
 
-// TOP 버튼
+function setupClubCardClick() {
+  const grid = document.getElementById('clubsGrid');
+  if (!grid) return;
+
+  grid.addEventListener('click', (e) => {
+    const card = e.target.closest('.club-card');
+    if (!card) return;
+
+    const clubId = card.dataset.clubId;
+    if (clubId) {
+      console.log('클럽 상세 이동:', clubId);
+      navigateTo(`club_detail.html?id=${clubId}`);
+    }
+  });
+}
+
 function setupTopButton() {
   const topButton = document.getElementById('topButton');
   if (!topButton) return;
@@ -227,17 +250,29 @@ function setupTopButton() {
   });
 }
 
-// 클럽 상세 페이지로 이동
-function goToDetail(clubId) {
-  console.log('클럽 상세 이동:', clubId);
-  navigateTo(`club_detail.html?id=${clubId}`);
+function setupLogoClick() {
+  const logoBtn = document.getElementById('logoBtn');
+  if (logoBtn) {
+    logoBtn.style.cursor = 'pointer';
+    logoBtn.addEventListener('click', () => {
+      navigateTo('main.html');
+    });
+  }
 }
 
+// ==================== 초기화 ====================
+
 async function initClubsPage() {
-  console.log('클럽 목록 페이지 초기화');
+  hideLoading();
+
+  await initHeader();
+
+  setupLogoClick();
 
   await loadClubs();
+
   setupFilters();
+  setupClubCardClick();
   setupTopButton();
   setupCreateClubButton();
 }
@@ -248,4 +283,4 @@ if (document.readyState === 'loading') {
   initClubsPage();
 }
 
-console.log('clubs/list.js 로드 완료');
+console.log('club/list.js 로드 완료');
