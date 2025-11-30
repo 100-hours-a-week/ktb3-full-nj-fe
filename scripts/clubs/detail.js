@@ -1,6 +1,13 @@
 // ==================== Import ====================
 
-import { getClub } from '../common/api/club.js';
+import { 
+  getClub,
+  applyToClub,
+  cancelApplication,
+  leaveClub,
+  getMyJoinStatus
+} from '../common/api/club.js';
+
 import { API_BASE_URL } from '../common/api/core.js';
 
 import { 
@@ -14,13 +21,12 @@ import { formatDate } from '../common/util/format.js';
 
 import { initHeader } from '../common/component/header.js';
 
-// ==================== 더미 데이터 (임시) ====================
+// ==================== 더미 데이터 ====================
 
 const DUMMY_DATA = {
   totalMembers: 45,
   newMembers: 12,
   performances: 15,
-
   gallery: [
     { id: 1, placeholder: '📸' },
     { id: 2, placeholder: '🎬' },
@@ -31,25 +37,23 @@ const DUMMY_DATA = {
     { id: 7, placeholder: '🎵' },
     { id: 8, placeholder: '⚡' }
   ],
-
   leaders: [
     { name: '김동아', role: '회장', avatar: '👤' },
     { name: '이댄스', role: '부회장', avatar: '👤' },
     { name: '박리듬', role: '총무', avatar: '👤' }
   ],
-
   recentActivities: [
     {
       id: 1,
       title: '2024 가을 정기공연 성황리 종료',
-      description: '지난 11월 15일, 학생회관 대강당에서 진행된 가을 정기공연이 성황리에 종료되었습니다. 200명 이상의 관객이 참석해주셨습니다.',
+      description: '지난 11월 15일, 학생회관 대강당에서 진행된 가을 정기공연이 성황리에 종료되었습니다.',
       date: '2024-11-16',
       image: '🎉'
     },
     {
       id: 2,
       title: '신입생 오리엔테이션 진행',
-      description: '2024년 하반기 신입생 12명을 대상으로 오리엔테이션을 진행했습니다. 앞으로의 활동이 기대됩니다!',
+      description: '2024년 하반기 신입생 12명을 대상으로 오리엔테이션을 진행했습니다.',
       date: '2024-11-10',
       image: '👋'
     },
@@ -61,7 +65,6 @@ const DUMMY_DATA = {
       image: '🏆'
     }
   ],
-
   contact: {
     email: 'club@univ.ac.kr',
     instagram: '@club_official',
@@ -73,7 +76,7 @@ const DUMMY_DATA = {
 // ==================== 상태 관리 ====================
 
 let currentClub = null;
-let isMember = false;
+let joinStatus = null; // { status: 'ACTIVE' | 'PENDING' | ..., role: 'LEADER' | 'MANAGER' | 'MEMBER' }
 
 // ==================== URL 파라미터 ====================
 
@@ -97,7 +100,8 @@ function renderClubDetail(club) {
   renderActivities(club.recentActivities);
   renderContact(club.contact);
   
-  updateJoinButtonText(club.isMine === true);
+  updateJoinButton();
+  updateAdminButtons();
 }
 
 function renderBasicInfo(club) {
@@ -135,7 +139,10 @@ function renderBasicInfo(club) {
   }
 
   if (badgeEl) {
-    badgeEl.style.display = club.isMine === true ? 'inline-block' : 'none';
+    badgeEl.style.display = 
+      joinStatus && joinStatus.status === 'ACTIVE' 
+        ? 'inline-block' 
+        : 'none';
   }
 }
 
@@ -304,10 +311,10 @@ function renderContact(contact) {
 }
 
 function renderEmptyClub() {
-  const container = document.querySelector('.detail-container');
-  if (!container) return;
+  const main = document.querySelector('.detail-main');
+  if (!main) return;
 
-  container.innerHTML = `
+  main.innerHTML = `
     <div class="empty-state">
       <div class="empty-state-icon">🎭</div>
       <div class="empty-state-text">동아리 정보를 찾을 수 없습니다</div>
@@ -316,10 +323,10 @@ function renderEmptyClub() {
 }
 
 function renderErrorState() {
-  const container = document.querySelector('.detail-container');
-  if (!container) return;
+  const main = document.querySelector('.detail-main');
+  if (!main) return;
 
-  container.innerHTML = `
+  main.innerHTML = `
     <div class="empty-state">
       <div class="empty-state-icon">⚠️</div>
       <div class="empty-state-text">동아리 정보를 불러오는 중 오류가 발생했습니다</div>
@@ -335,48 +342,199 @@ function renderErrorState() {
   }
 }
 
-function updateJoinButtonText(isMine) {
+function updateJoinButton() {
   const joinBtn = document.getElementById('joinBtn');
   if (!joinBtn) return;
 
-  if (isMine) {
-    joinBtn.textContent = '탈퇴하기';
-    joinBtn.classList.add('btn-outline');
-  } else {
+  joinBtn.classList.remove('btn-outline', 'retry-btn');
+
+  if (!joinStatus) {
     joinBtn.textContent = '가입 신청';
-    joinBtn.classList.remove('btn-outline');
+    joinBtn.disabled = false;
+    joinBtn.onclick = () => handleApply(currentClub.clubId);
+    return;
   }
+
+  const status = joinStatus.status;
+
+  switch (status) {
+    case 'PENDING':
+      joinBtn.textContent = '신청 취소';
+      joinBtn.classList.add('btn-outline');
+      joinBtn.disabled = false;
+      joinBtn.onclick = () => handleCancelApplication(currentClub.clubId);
+      break;
+
+    case 'ACTIVE':
+      joinBtn.textContent = '탈퇴하기';
+      joinBtn.classList.add('btn-outline');
+      joinBtn.disabled = false;
+      joinBtn.onclick = () => handleLeave(currentClub.clubId);
+      break;
+
+    case 'REJECTED':
+      joinBtn.textContent = '재신청';
+      joinBtn.classList.add('retry-btn');
+      joinBtn.disabled = false;
+      joinBtn.onclick = () => handleReapply(currentClub.clubId);
+      break;
+
+    case 'CANCELED':
+    case 'LEFT':
+      joinBtn.textContent = '가입 신청';
+      joinBtn.disabled = false;
+      joinBtn.onclick = () => handleApply(currentClub.clubId);
+      break;
+
+    default:
+      joinBtn.textContent = '가입 신청';
+      joinBtn.disabled = false;
+      joinBtn.onclick = () => handleApply(currentClub.clubId);
+  }
+}
+
+function updateAdminButtons() {
+  const adminActions = document.getElementById('adminActions');
+  if (!adminActions) {
+    console.warn('adminActions 요소를 찾을 수 없습니다');
+    return;
+  }
+
+  console.log('=== 관리자 버튼 업데이트 ===');
+  console.log('joinStatus:', joinStatus);
+  console.log('status:', joinStatus?.status);
+  console.log('role:', joinStatus?.role);
+  
+  // ✅ LEADER나 MANAGER면 관리 버튼 표시
+  const isAdmin = 
+    joinStatus && 
+    joinStatus.status === 'ACTIVE' &&
+    (joinStatus.role === 'LEADER' || joinStatus.role === 'MANAGER');
+
+  console.log('isAdmin:', isAdmin);
+  console.log('=========================');
+  
+  adminActions.style.display = isAdmin ? 'flex' : 'none';
 }
 
 // ==================== 이벤트 핸들러 ====================
 
-function setupJoinButton() {
-  const joinBtn = document.getElementById('joinBtn');
-  if (!joinBtn) return;
-  
-  joinBtn.addEventListener('click', () => {
-    if (isMember) {
-      showModal(
-        '동아리 탈퇴',
-        '정말 탈퇴하시겠습니까?',
-        () => {
-          // TODO: 실제 탈퇴 API 연동
-          showToast('탈퇴되었습니다');
-          isMember = false;
-          updateJoinButtonText(false);
+async function handleApply(clubId) {
+  showModal(
+    '동아리 가입',
+    '가입 신청을 하시겠습니까?',
+    async () => {
+      try {
+        const response = await applyToClub(clubId);
+        showToast(response.message || '가입 신청이 완료되었습니다');
+        
+        // 상태 다시 로드
+        await loadJoinStatus(clubId);
+        updateJoinButton();
+        updateAdminButtons();
+        
+      } catch (error) {
+        console.error('가입 신청 실패:', error);
+        
+        if (error.status === 401) {
+          showToast('로그인이 필요합니다');
+          setTimeout(() => navigateTo('login.html'), 1500);
+        } else if (error.status === 409) {
+          showToast('이미 신청했거나 가입된 동아리입니다', 2000, 'error');
+        } else {
+          showToast(error.message || '가입 신청 중 오류가 발생했습니다', 2000, 'error');
         }
-      );
-    } else {
-      showModal(
-        '동아리 가입',
-        '가입 신청을 하시겠습니까?',
-        () => {
-          // TODO: 실제 가입 API 연동
-          showToast('가입 신청이 완료되었습니다');
-        }
-      );
+      }
     }
-  });
+  );
+}
+
+async function handleLeave(clubId) {
+  showModal(
+    '동아리 탈퇴',
+    '정말 탈퇴하시겠습니까?',
+    async () => {
+      try {
+        const response = await leaveClub(clubId);
+        showToast(response.message || '탈퇴되었습니다');
+        
+        // 상태 초기화
+        joinStatus = null;
+        updateJoinButton();
+        updateAdminButtons();
+        
+        // 클럽 정보 다시 로드 (멤버 수 업데이트)
+        await loadClubDetail(clubId);
+        
+      } catch (error) {
+        console.error('탈퇴 실패:', error);
+        
+        if (error.status === 401) {
+          showToast('로그인이 필요합니다');
+          setTimeout(() => navigateTo('login.html'), 1500);
+        } else {
+          showToast(error.message || '탈퇴 중 오류가 발생했습니다', 2000, 'error');
+        }
+      }
+    }
+  );
+}
+
+async function handleReapply(clubId) {
+  showModal(
+    '동아리 재신청',
+    '이전에 거절되었던 동아리입니다. 다시 신청하시겠습니까?',
+    async () => {
+      try {
+        const response = await applyToClub(clubId);
+        showToast(response.message || '재신청이 완료되었습니다');
+        
+        await loadJoinStatus(clubId);
+        updateJoinButton();
+        updateAdminButtons();
+        
+      } catch (error) {
+        console.error('재신청 실패:', error);
+        
+        if (error.status === 401) {
+          showToast('로그인이 필요합니다');
+          setTimeout(() => navigateTo('login.html'), 1500);
+        } else if (error.status === 409) {
+          showToast('이미 신청했거나 가입된 동아리입니다', 2000, 'error');
+        } else {
+          showToast(error.message || '재신청 중 오류가 발생했습니다', 2000, 'error');
+        }
+      }
+    }
+  );
+}
+
+async function handleCancelApplication(clubId) {
+  showModal(
+    '신청 취소',
+    '가입 신청을 취소하시겠습니까?',
+    async () => {
+      try {
+        const response = await cancelApplication(clubId);
+        showToast(response.message || '신청이 취소되었습니다');
+        
+        // 상태 초기화
+        joinStatus = null;
+        updateJoinButton();
+        updateAdminButtons();
+        
+      } catch (error) {
+        console.error('신청 취소 실패:', error);
+        
+        if (error.status === 401) {
+          showToast('로그인이 필요합니다');
+          setTimeout(() => navigateTo('login.html'), 1500);
+        } else {
+          showToast(error.message || '신청 취소 중 오류가 발생했습니다', 2000, 'error');
+        }
+      }
+    }
+  );
 }
 
 function setupShareButton() {
@@ -420,6 +578,23 @@ function setupBackButton() {
   backBtn.onclick = () => smartBack('club_list.html');
 }
 
+function setupAdminButtons() {
+  const applicationsBtn = document.getElementById('applicationsBtn');
+  const membersBtn = document.getElementById('membersBtn');
+
+  if (applicationsBtn) {
+    applicationsBtn.addEventListener('click', () => {
+      navigateTo(`club_applications.html?id=${currentClub.clubId}`);
+    });
+  }
+
+  if (membersBtn) {
+    membersBtn.addEventListener('click', () => {
+      navigateTo(`club_members.html?id=${currentClub.clubId}`);
+    });
+  }
+}
+
 // ==================== 데이터 로드 ====================
 
 async function loadClubDetail(clubId) {
@@ -436,8 +611,6 @@ async function loadClubDetail(clubId) {
     }
 
     currentClub = club;
-    isMember = club.isMine === true;
-    
     renderClubDetail(club);
 
   } catch (error) {
@@ -454,6 +627,26 @@ async function loadClubDetail(clubId) {
   }
 }
 
+async function loadJoinStatus(clubId) {
+  try {
+    const response = await getMyJoinStatus(clubId);
+    joinStatus = response.data;
+    
+    console.log('가입 상태:', joinStatus);
+    
+  } catch (error) {
+    console.error('가입 상태 조회 실패:', error);
+    
+    if (error.status === 404 || error.status === 401) {
+      console.log('가입 안 한 동아리');
+      joinStatus = null;
+    } else {
+      console.warn('가입 상태 조회 중 오류:', error.message);
+      joinStatus = null;
+    }
+  }
+}
+
 // ==================== 초기화 ====================
 
 async function init() {
@@ -462,9 +655,9 @@ async function init() {
   await initHeader();
 
   setupBackButton();
-  setupJoinButton();
   setupShareButton();
   setupActivityClick();
+  setupAdminButtons();
 
   const clubId = getClubIdFromUrl();
   if (!clubId) {
@@ -475,6 +668,10 @@ async function init() {
   }
 
   await loadClubDetail(clubId);
+  await loadJoinStatus(clubId);
+  
+  updateJoinButton();
+  updateAdminButtons();
 }
 
 if (document.readyState === 'loading') {

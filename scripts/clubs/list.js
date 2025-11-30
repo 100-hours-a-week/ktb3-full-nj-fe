@@ -8,6 +8,8 @@ import {
   hideLoading
 } from '../common/util/utils.js';
 
+import { getImageUrl } from '../common/util/image_util.js';
+
 import { initHeader } from '../common/component/header.js';
 
 // ==================== 상태 관리 ====================
@@ -15,7 +17,8 @@ import { initHeader } from '../common/component/header.js';
 let currentFilter = 'all';
 let currentSort = 'name';
 let clubs = [];
-let myClubIds = new Set();
+let myClubIds = [];        // ✅ 배열로 통일
+let pendingClubIds = [];   // ✅ 배열로 통일
 
 // ==================== 데이터 로드 ====================
 
@@ -43,23 +46,32 @@ async function loadClubs() {
       console.warn('전체 클럽 조회 실패:', allRes.reason);
     }
 
-    // 내 클럽 목록
+    // ✅ 내 클럽 목록 (ACTIVE + PENDING 분리)
     if (myRes.status === 'fulfilled' && myRes.value.data) {
       const joins = myRes.value.data;
-      myClubIds = new Set(
-        joins
-          .filter(j => j.status === 'ACTIVE')
-          .map(j => j.clubId)
-      );
+      
+      myClubIds = joins
+        .filter(j => j.status === 'ACTIVE')
+        .map(j => j.clubId);
+      
+      pendingClubIds = joins
+        .filter(j => j.status === 'PENDING')
+        .map(j => j.clubId);
+      
+      console.log('내 동아리 ID:', myClubIds);
+      console.log('신청 중인 동아리 ID:', pendingClubIds);
+      
     } else {
       console.warn('내 클럽 조회 실패 또는 없음:', myRes.reason);
-      myClubIds = new Set();
+      myClubIds = [];
+      pendingClubIds = [];
     }
 
-    // isMine 플래그 추가
+    // ✅ isMine, isPending 플래그 추가
     clubs = (apiClubs || []).map(c => ({
       ...c,
-      isMine: myClubIds.has(c.clubId)
+      isMine: myClubIds.includes(c.clubId),
+      isPending: pendingClubIds.includes(c.clubId)
     }));
 
     applySort();
@@ -72,53 +84,67 @@ async function loadClubs() {
 
 // ==================== 렌더링 ====================
 
-function renderClubs(list = clubs) {
+function renderClubs(list) {
   const grid = document.getElementById('clubsGrid');
   if (!grid) return;
 
   if (!list || list.length === 0) {
-    showEmptyState("등록된 동아리가 없습니다");
+    showEmptyState();
     return;
   }
 
-  grid.innerHTML = list.map(createClubCard).join('');
+  // ✅ 내 동아리 / 신청 중 / 일반 순으로 정렬
+  const sorted = [...list].sort((a, b) => {
+    if (a.isMine && !b.isMine) return -1;
+    if (!a.isMine && b.isMine) return 1;
+    if (a.isPending && !b.isPending) return -1;
+    if (!a.isPending && b.isPending) return 1;
+    return 0;
+  });
+
+  grid.innerHTML = sorted.map(club => createClubCard(club)).join('');
 }
 
 function createClubCard(club) {
   const imgSrc = club.clubImage
     ? `${API_BASE_URL}${club.clubImage}`
     : null;
+    
+  const cardClass = club.isMine ? 'club-card my-club' : 
+                    club.isPending ? 'club-card pending-club' : 
+                    'club-card';
 
   return `
-      <div class="club-card ${club.isMine ? 'my-club' : ''}" data-club-id="${club.clubId}">
-        <div class="club-logo">
+    <div class="${cardClass}" data-club-id="${club.clubId}">
+      
+      <div class="club-logo">
+        ${
+          imgSrc
+            ? `<img src="${imgSrc}" alt="${club.clubName}">`
+            : `<span class="club-logo-placeholder">C</span>`
+        }
+      </div>
+      
+      <div class="club-divider"></div>
+      
+      <div class="club-info">
+        <h3 class="club-name">${club.clubName}</h3>
+        <p class="club-subtitle">${club.intro || ''}</p>
+        <p class="club-description">${club.description || ''}</p>
+        <div class="club-tags">
           ${
-            imgSrc
-              ? `<img src="${imgSrc}" alt="${club.clubName}">`
-              : `<span class="club-logo-placeholder">C</span>`
+            (club.tags || [])
+              .map(tag => `<span class="club-tag">${tag}</span>`)
+              .join('') || ''
           }
         </div>
-        
-        <div class="club-divider"></div>
-        
-        <div class="club-info">
-          <h3 class="club-name">${club.clubName}</h3>
-          <p class="club-subtitle">${club.intro || ''}</p>
-          <p class="club-description">${club.description || ''}</p>
-          <div class="club-tags">
-            ${
-              (club.tags || [])
-                .map(tag => `<span class="club-tag">${tag}</span>`)
-                .join('') || ''
-            }
-          </div>
-        </div>
-        
-        <div class="club-arrow">
-          <span class="club-arrow-icon">→</span>
-        </div>
       </div>
-    `;
+      
+      <div class="club-arrow">
+        <span class="club-arrow-icon">→</span>
+      </div>
+    </div>
+  `;
 }
 
 function showEmptyState(message = '등록된 동아리가 없습니다') {
@@ -141,9 +167,10 @@ function applySort() {
     return;
   }
 
-  // 내 클럽은 항상 최상단
+  // ✅ 내 클럽과 신청 중 클럽은 항상 최상단
   const myClubList = clubs.filter(c => c.isMine);
-  const otherClubs = clubs.filter(c => !c.isMine);
+  const pendingList = clubs.filter(c => !c.isMine && c.isPending);
+  const otherClubs = clubs.filter(c => !c.isMine && !c.isPending);
 
   // 나머지 클럽 정렬
   if (currentSort === 'name') {
@@ -154,7 +181,8 @@ function applySort() {
     otherClubs.sort((a, b) => (b.memberCount || 0) - (a.memberCount || 0));
   }
 
-  clubs = [...myClubList, ...otherClubs];
+  // ✅ 순서: 내 동아리 → 신청 중 → 나머지
+  clubs = [...myClubList, ...pendingList, ...otherClubs];
 
   applyFilters();
 }
@@ -176,7 +204,6 @@ function applyFilters() {
   }
 
   if (filtered.length === 0) {
-    const grid = document.getElementById('clubsGrid');
     showEmptyState("조건에 맞는 동아리가 없습니다");
     return;
   }

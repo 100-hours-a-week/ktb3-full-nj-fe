@@ -95,6 +95,14 @@ export async function rejectApplication(clubId, applicantId) {
   return await apiRequest(`/clubs/${clubId}/applications/${applicantId}/reject`, { method: 'POST' });
 }
 
+// 멤버 역할 변경
+export async function updateMemberRole(clubId, userId, role) {
+  return await apiRequest(`/clubs/${clubId}/members/${userId}/role`, {
+    method: 'PATCH',
+    body: JSON.stringify({ role })
+  });
+}
+
 // 멤버 추방
 export async function kickMember(clubId, memberId) {
   return await apiRequest(`/clubs/${clubId}/members/${memberId}`, { method: 'DELETE' });

@@ -148,7 +148,6 @@
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 
-/* 내 동아리 강조 */
 .club-card.my-club {
   border: 3px solid #1A1A1A;
   background: #FAFAFA;
@@ -165,6 +164,26 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1px;
+  z-index: 10;
+}
+
+.club-card.pending-club {
+  border: 3px solid #FFB800;
+  background: #FFFDF5;
+}
+
+.club-card.pending-club::before {
+  content: '신청 중';
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #FFB800;
+  color: white;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  z-index: 10;
 }
 
 /* 로고 */
@@ -367,6 +386,226 @@
   margin-top: 24px;
 }
 
+/* ==================== 관리자 화면 공통 ==================== */
+
+.admin-main {
+  background: #FAFAFA;
+  padding: 60px 40px;
+  min-height: calc(100vh - 80px);
+}
+
+.admin-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.admin-header {
+  margin-bottom: 40px;
+}
+
+.admin-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin-bottom: 12px;
+}
+
+.admin-subtitle {
+  font-size: 16px;
+  color: #666;
+}
+
+/* ==================== 신청/멤버 카드 ==================== */
+
+.application-card,
+.member-card {
+  background: white;
+  border: 1px solid #E0E0E0;
+  padding: 24px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.2s;
+}
+
+.application-card:hover,
+.member-card:hover {
+  border-color: #1A1A1A;
+}
+
+/* ==================== 사용자 정보 영역 ==================== */
+
+.user-info,
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #E0E0E0;
+}
+
+.user-details,
+.member-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-name,
+.member-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1A1A1A;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-email,
+.member-email {
+  font-size: 14px;
+  color: #666;
+}
+
+.application-date,
+.join-date {
+  font-size: 13px;
+  color: #999;
+}
+
+/* ==================== 역할 뱃지 ==================== */
+
+.role-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-family: 'KIMM_Bold', sans-serif;
+  font-size: 12px;
+  color: white;
+}
+
+.role-badge.leader {
+  background: #1A1A1A;
+}
+
+.role-badge.manager {
+  background: #666;
+}
+
+.role-badge.member {
+  background: #999;
+}
+
+/* ==================== 액션 버튼 ==================== */
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.action-buttons .btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  min-width: 70px;
+}
+
+.approve-btn {
+  background: #1A1A1A;
+  color: white;
+}
+
+.approve-btn:hover {
+  background: #000;
+}
+
+.reject-btn,
+.kick-btn {
+  border: 1px solid #E0E0E0;
+  color: #666;
+}
+
+.reject-btn:hover,
+.kick-btn:hover {
+  border-color: #1A1A1A;
+  color: #1A1A1A;
+}
+
+/* ==================== 재신청 버튼 ==================== */
+
+.btn.retry-btn {
+  background: #FFB800 !important;
+  color: white !important;
+  border: none !important;
+}
+
+.btn.retry-btn:hover {
+  background: #E5A600 !important;
+}
+
+/* ==================== 빈 상태 ==================== */
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-state-text {
+  font-family: 'KIMM_Bold', sans-serif;
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.empty-state-subtext {
+  font-family: 'KIMM_Light', sans-serif;
+  font-size: 14px;
+  color: #999;
+}
+
+/* ==================== 로딩 상태 ==================== */
+
+.loading-message {
+  text-align: center;
+  padding: 40px;
+  font-family: 'KIMM_Light', sans-serif;
+  color: #999;
+}
+
+/* ==================== 역할 선택 드롭다운 ==================== */
+
+.role-select {
+  padding: 8px 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  background: white;
+  transition: border-color 0.2s;
+}
+
+.role-select:hover {
+  border-color: #1A1A1A;
+}
+
+.role-select:focus {
+  outline: none;
+  border-color: #1A1A1A;
+}
+
 /* ========================================
    반응형
 ======================================== */
@@ -437,5 +676,35 @@
 
   .club-avatar-wrapper {
     margin-bottom: 24px;
+  }
+
+  .admin-main {
+    padding: 40px 20px;
+  }
+
+  .admin-title {
+    font-size: 24px;
+  }
+
+  .application-card,
+  .member-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .user-info,
+  .member-info {
+    width: 100%;
+  }
+
+  .action-buttons {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .action-buttons .btn {
+    flex: 1;
   }
 }
