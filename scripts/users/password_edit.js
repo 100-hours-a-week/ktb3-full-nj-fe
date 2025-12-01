@@ -14,7 +14,7 @@ import {
 import { 
   validatePassword,
   validatePasswordConfirm
-} from '../common/validators.js';
+} from '../common/util/validators.js';
 
 import { initHeader } from '../common/component/header.js';
 

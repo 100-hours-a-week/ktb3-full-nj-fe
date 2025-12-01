@@ -1,405 +1,375 @@
-// 게시글 작성 페이지
+// ==================== Import ====================
 
+import { initHeader } from '../common/component/header.js';
+import { initCustomSelects } from '../common/component/customSelect.js';
+import { showLoading, hideLoading } from '../common/util/utils.js';
+import { showToast } from '../common/util/utils.js';
+import { navigateTo } from '../common/util/utils.js';
+import { validateTitle, validateContent } from '../common/util/validators.js';
+import { parseTags } from '../common/util/format.js';
+import { createPost } from '../common/api/post.js';
+import { getMyClubs } from '../common/api/club.js';
+
+// ==================== 상수 ====================
+
+const MAX_IMAGES = 5;
+
+// ==================== 상태 관리 ====================
+
+let selectedFiles = [];
 let myClubs = [];
-let imageFiles = [];
 
-const formValidation = {
-  scope: true,
-  club: true,
-  title: false,
-  content: false
-};
+// ==================== API 호출 ====================
 
-// 내 동아리 목록 조회
 async function loadMyClubs() {
   try {
     const response = await getMyClubs();
     myClubs = response.data || [];
-    
-    console.log('내 동아리 목록:', myClubs);
-    
+
+    console.log('내 동아리 목록:', myClubs.length, '개');
+
     if (myClubs.length === 0) {
-      disableClubScope();
+      console.warn('가입한 동아리가 없습니다');
       return;
     }
-    
+
     renderClubOptions();
-    
   } catch (error) {
-    console.error('동아리 목록 로드 실패:', error);
-    showToast('동아리 목록을 불러오는데 실패했습니다', 3000, 'error');
-    disableClubScope();
+    console.error('동아리 로드 실패:', error);
+    showToast('동아리 목록을 불러오지 못했습니다', 2000, 'error');
   }
 }
 
-// 게시글 작성
-async function createPost(postData) {
-  console.log('게시글 작성 API 호출');
-  
-  const formData = new FormData();
-  
-  formData.append('scope', postData.scope);
-  
-  if (postData.clubId) {
-    formData.append('clubId', postData.clubId);
+async function submitPost(formData) {
+  try {
+    showLoading();
+    const response = await createPost(formData);
+    hideLoading();
+
+    console.log('게시글 작성 성공:', response);
+    showToast('게시글이 등록되었습니다', 2000, 'success');
+
+    setTimeout(() => {
+      navigateTo('post_list.html');
+    }, 1000);
+  } catch (error) {
+    hideLoading();
+    console.error('게시글 작성 실패:', error);
+    showToast(error.message || '게시글 등록에 실패했습니다', 2000, 'error');
   }
-  
-  formData.append('title', postData.title);
-  formData.append('content', postData.content);
-  
-  // 태그 추가
-  if (postData.tags && postData.tags.length > 0) {
-    postData.tags.forEach(tag => {
-      formData.append('tags', tag);
-    });
-  }
-  
-  // 이미지 추가
-  if (postData.images && postData.images.length > 0) {
-    postData.images.forEach(imageFile => {
-      formData.append('images', imageFile);
-    });
-    console.log(`이미지 ${postData.images.length}개 포함`);
-  }
-  
-  return await apiRequest('/posts', {
-    method: 'POST',
-    body: formData
-  });
 }
 
-// 동아리 옵션 렌더링
+// ==================== UI 렌더링 ====================
+
 function renderClubOptions() {
-  const wrapper = document.querySelector('.custom-select[data-target="clubSelect"]');
   const hiddenSelect = document.getElementById('clubSelect');
+  const wrapper = document.querySelector('.custom-select[data-target="clubSelect"]');
   const menu = wrapper ? wrapper.querySelector('.custom-select-menu') : null;
-  
-  // hidden select 초기화
+
+  if (!hiddenSelect || !menu) {
+    console.error('동아리 선택 요소를 찾을 수 없습니다');
+    return;
+  }
+
+  // 기존 옵션 제거 (첫 번째 placeholder 제외)
   hiddenSelect.innerHTML = '<option value="">동아리를 선택해주세요</option>';
-  
-  // custom menu 초기화
-  if (menu) {
-    menu.innerHTML = '<div class="custom-select-option" data-value="">동아리를 선택해주세요</div>';
-  }
-  
+  menu.innerHTML = '';
+
+  // 동아리 옵션 추가
   myClubs.forEach(club => {
-    const id = club.clubId;
-    const name = club.clubName || club.name || `클럽 ${id}`;
-    
-    // hidden select에 option 추가
+    const clubId = club.clubId;
+    const clubName = club.clubName || `클럽 ${clubId}`;
+
+    // hidden select에 추가
     const option = document.createElement('option');
-    option.value = id;
-    option.textContent = name;
+    option.value = clubId;
+    option.textContent = clubName;
     hiddenSelect.appendChild(option);
-    
-    // custom menu에 option 추가
-    if (menu) {
-      const div = document.createElement('div');
-      div.className = 'custom-select-option';
-      div.dataset.value = id;
-      div.textContent = name;
-      menu.appendChild(div);
-    }
+
+    // custom select menu에 추가
+    const div = document.createElement('div');
+    div.className = 'custom-select-option';
+    div.dataset.value = clubId;
+    div.textContent = clubName;
+    menu.appendChild(div);
   });
-  
-  // 커스텀 셀렉트 초기화
-  if (window.initCustomSelects) {
-    window.initCustomSelects();
-  }
+
+  // 커스텀 셀렉트 재초기화
+  initCustomSelects();
+
+  console.log('동아리 옵션 렌더링 완료');
 }
 
-// 동아리 옵션 비활성화
-function disableClubScope() {
-  const clubRadio = document.querySelector('input[name="scope"][value="CLUB"]');
-  const clubLabel = clubRadio.closest('.scope-option');
-  
-  clubRadio.disabled = true;
-  clubLabel.style.opacity = '0.5';
-  clubLabel.style.cursor = 'not-allowed';
-  
-  // 안내 문구 추가
-  const helpText = document.createElement('div');
-  helpText.className = 'scope-help-text';
-  helpText.textContent = '동아리에 가입하면 사용할 수 있어요';
-  helpText.style.fontSize = '13px';
-  helpText.style.color = '#999';
-  helpText.style.marginTop = '8px';
-  
-  const scopeOptions = document.querySelector('.scope-options');
-  scopeOptions.appendChild(helpText);
-  
-  console.log('가입된 동아리가 없어 "내 동아리만" 옵션 비활성화');
-}
+function renderImagePreview(file, index) {
+  const container = document.getElementById('imagePreviewContainer');
 
-// 이미지를 미리보기에 추가
-function addImageToPreview(file) {
-  imageFiles.push(file);
-  const fileIndex = imageFiles.length - 1;
-  
-  const previewItem = document.createElement('div');
-  previewItem.className = 'image-preview-item';
-  previewItem.dataset.index = fileIndex;
-  
+  const wrapper = document.createElement('div');
+  wrapper.className = 'image-preview-item';
+  wrapper.dataset.index = index;
+
   const img = document.createElement('img');
-  const deleteBtn = document.createElement('button');
-  deleteBtn.className = 'image-delete-btn';
-  deleteBtn.textContent = '×';
-  
-  deleteBtn.addEventListener('click', () => {
-    removeImageFromPreview(fileIndex);
+  img.className = 'image-preview-img';
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'image-preview-remove';
+  removeBtn.innerHTML = '×';
+  removeBtn.addEventListener('click', () => removeImage(index));
+
+  wrapper.appendChild(img);
+  wrapper.appendChild(removeBtn);
+  container.appendChild(wrapper);
+}
+
+function updateImagePreview() {
+  const container = document.getElementById('imagePreviewContainer');
+  container.innerHTML = '';
+
+  selectedFiles.forEach((file, index) => {
+    renderImagePreview(file, index);
   });
-  
-  previewItem.appendChild(img);
-  previewItem.appendChild(deleteBtn);
-  
-  document.getElementById('imagePreviewContainer').appendChild(previewItem);
-  
-  img.src = createPreviewUrl(file);
+
+  console.log('이미지 미리보기 업데이트:', selectedFiles.length, '개');
 }
 
-// 이미지를 미리보기에서 삭제
-function removeImageFromPreview(fileIndex) {
-  imageFiles[fileIndex] = null;
-  
-  const previewItem = document.querySelector(`[data-index="${fileIndex}"]`);
-  if (previewItem) {
-    previewItem.remove();
+function removeImage(index) {
+  selectedFiles.splice(index, 1);
+  updateImagePreview();
+  validateForm();
+
+  console.log('이미지 제거:', index, '/ 남은 개수:', selectedFiles.length);
+}
+
+// ==================== 검증 ====================
+
+function validateForm() {
+  const scope = document.querySelector('input[name="scope"]:checked').value;
+  const clubId = document.getElementById('clubSelect').value;
+  const title = document.getElementById('titleInput').value.trim();
+  const content = document.getElementById('contentInput').value.trim();
+
+  let isValid = true;
+
+  // 공개 범위 검증
+  if (scope === 'CLUB' && !clubId) {
+    setFieldError('clubSelect', '동아리를 선택해주세요');
+    isValid = false;
+  } else {
+    clearFieldError('clubSelect');
   }
-  
-  console.log(`이미지 삭제됨. 현재 ${getValidImageCount()}개`);
+
+  // 제목 검증
+  if (!validateTitle(title)) {
+    setFieldError('titleInput', '제목을 입력해주세요');
+    isValid = false;
+  } else {
+    clearFieldError('titleInput');
+  }
+
+  // 내용 검증
+  if (!validateContent(content)) {
+    setFieldError('contentInput', '내용을 입력해주세요');
+    isValid = false;
+  } else {
+    clearFieldError('contentInput');
+  }
+
+  // 제출 버튼 활성화/비활성화
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = !isValid;
+
+  return isValid;
 }
 
-// 유효한 이미지 개수 계산
-function getValidImageCount() {
-  return imageFiles.filter(file => file !== null).length;
+function setFieldError(fieldId, message) {
+  const field = document.getElementById(fieldId);
+  const helperText = field.parentElement.querySelector('.helper-text');
+
+  field.classList.add('error');
+  if (helperText) {
+    helperText.textContent = message;
+    helperText.classList.add('error');
+  }
 }
 
-// 유효한 이미지 파일들만 반환
-function getValidImageFiles() {
-  return imageFiles.filter(file => file !== null);
+function clearFieldError(fieldId) {
+  const field = document.getElementById(fieldId);
+  const helperText = field.parentElement.querySelector('.helper-text');
+
+  field.classList.remove('error');
+  if (helperText) {
+    helperText.textContent = '';
+    helperText.classList.remove('error');
+  }
 }
 
-// 공개 범위 선택
-function setupScopeEvents() {
+// ==================== 이벤트 핸들러 ====================
+
+function setupBackButton() {
+  const backBtn = document.getElementById('backBtn');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      history.back();
+    });
+  }
+}
+
+function setupScopeToggle() {
   const scopeRadios = document.querySelectorAll('input[name="scope"]');
   const clubSelectGroup = document.getElementById('clubSelectGroup');
-  const clubSelect = document.getElementById('clubSelect');
-  
+
   scopeRadios.forEach(radio => {
     radio.addEventListener('change', (e) => {
-      const scope = e.target.value;
-      
-      if (scope === 'CLUB') {
-        if (myClubs.length === 0) {
-          showToast('가입된 동아리가 없습니다', 2000, 'error');
-          document.querySelector('input[name="scope"][value="GLOBAL"]').checked = true;
-          return;
-        }
-        
+      const isClubScope = e.target.value === 'CLUB';
+
+      if (isClubScope) {
         clubSelectGroup.style.display = 'block';
-        formValidation.club = false;
-        clubSelect.required = true;
       } else {
         clubSelectGroup.style.display = 'none';
-        formValidation.club = true;
-        clubSelect.required = false;
-        clubSelect.value = '';
-        clearError('clubSelect');
+        document.getElementById('clubSelect').value = '';
+        clearFieldError('clubSelect');
       }
-      
-      updateButtonState(formValidation);
+
+      validateForm();
     });
   });
+
+  console.log('공개 범위 토글 이벤트 등록 완료');
 }
 
-// 동아리 선택
-function setupClubSelectEvents() {
+function setupClubSelectChange() {
   const clubSelect = document.getElementById('clubSelect');
-  
-  clubSelect.addEventListener('change', (e) => {
-    if (e.target.value) {
-      formValidation.club = true;
-      clearError('clubSelect');
-    } else {
-      formValidation.club = false;
-      showError('clubSelect', '동아리를 선택해주세요');
-    }
-    updateButtonState(formValidation);
+
+  clubSelect.addEventListener('change', () => {
+    validateForm();
   });
+
+  console.log('동아리 선택 이벤트 등록 완료');
 }
 
-// 제목 입력
-function setupTitleEvents() {
+function setupInputEvents() {
   const titleInput = document.getElementById('titleInput');
-  
-  titleInput.addEventListener('blur', function() {
-    validateTitle(this.value.trim(), formValidation);
-    updateButtonState(formValidation);
-  });
-  
-  titleInput.addEventListener('input', function() {
-    if (this.value) clearError('titleInput');
-    updateButtonState(formValidation);
-  });
-}
-
-// 내용 입력
-function setupContentEvents() {
   const contentInput = document.getElementById('contentInput');
-  
-  contentInput.addEventListener('blur', function() {
-    validateContent(this.value.trim(), formValidation);
-    updateButtonState(formValidation);
-  });
-  
-  contentInput.addEventListener('input', function() {
-    if (this.value) clearError('contentInput');
-    updateButtonState(formValidation);
-  });
+
+  titleInput.addEventListener('input', validateForm);
+  contentInput.addEventListener('input', validateForm);
+
+  console.log('입력 이벤트 등록 완료');
 }
 
-// 이미지 업로드
-function setupImageEvents() {
-  document.getElementById('fileSelectBtn').addEventListener('click', function() {
-    document.getElementById('imageInput').click();
+function setupFileSelect() {
+  const fileSelectBtn = document.getElementById('fileSelectBtn');
+  const imageInput = document.getElementById('imageInput');
+
+  fileSelectBtn.addEventListener('click', () => {
+    imageInput.click();
   });
-  
-  document.getElementById('imageInput').addEventListener('change', async function(e) {
+
+  imageInput.addEventListener('change', (e) => {
     const files = Array.from(e.target.files);
-    
-    for (const file of files) {
-      const validation = validateImageFile(file, {
-        maxSizeBytes: 5 * 1024 * 1024
-      });
-      
-      if (!validation.valid) {
-        showToast(validation.error, 3000, 'error');
-        continue;
-      }
-      
-      const processed = await processImageFile(file, {
-        maxWidth: 1024,
-        maxHeight: 1024,
-        quality: 0.8
-      });
-      
-      addImageToPreview(processed.file);
+
+    if (selectedFiles.length + files.length > MAX_IMAGES) {
+      showToast(`최대 ${MAX_IMAGES}개까지만 선택 가능합니다`, 2000, 'error');
+      return;
     }
-    
-    this.value = '';
+
+    selectedFiles = [...selectedFiles, ...files];
+    updateImagePreview();
+    validateForm();
+
+    // input 초기화 (같은 파일 다시 선택 가능하도록)
+    imageInput.value = '';
   });
+
+  console.log('파일 선택 이벤트 등록 완료');
 }
 
-// 폼 제출
-function setupSubmitEvent() {
-  document.getElementById('postForm').addEventListener('submit', async function(e) {
+function setupFormSubmit() {
+  const form = document.getElementById('postForm');
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
+    if (!validateForm()) {
+      showToast('필수 항목을 입력해주세요', 2000, 'error');
+      return;
+    }
+
+    // FormData 생성
+    const formData = new FormData();
+
     const scope = document.querySelector('input[name="scope"]:checked').value;
-    const clubId = scope === 'CLUB' ? document.getElementById('clubSelect').value : null;
+    formData.append('scope', scope);
+
+    if (scope === 'CLUB') {
+      const clubId = document.getElementById('clubSelect').value;
+      formData.append('clubId', clubId);
+    }
+
     const title = document.getElementById('titleInput').value.trim();
+    formData.append('title', title);
+
     const content = document.getElementById('contentInput').value.trim();
+    formData.append('content', content);
+
     const tagsInput = document.getElementById('tagsInput').value.trim();
-    const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
-    
-    // 검증
-    if (!validateTitle(title, formValidation)) {
-      console.log('검증 실패: 제목');
-      return;
-    }
-    if (!validateContent(content, formValidation)) {
-      console.log('검증 실패: 내용');
-      return;
-    }
-    if (scope === 'CLUB' && !clubId) {
-      console.log('검증 실패: 동아리 선택');
-      showError('clubSelect', '동아리를 선택해주세요');
-      return;
-    }
-    
-    // 로딩 상태
-    const btn = e.target.querySelector('button[type="submit"]');
-    const originalText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = '작성 중...';
-    
-    try {
-      const postData = {
-        scope: scope,
-        clubId: clubId,
-        title: title,
-        content: content,
-        tags: tags,
-        images: getValidImageFiles()
-      };
-      
-      const response = await createPost(postData);
-      
-      console.log('게시글 작성 완료!', response);
-      
-      showToast(response.message || '게시글이 작성되었습니다');
-      
-      navigateTo('post_list.html', 2000);
-      
-    } catch (error) {
-      console.error('게시글 작성 실패:', error);
-      
-      if (error.status === 400) {
-        showError('postForm', error.message || '입력 정보를 확인해주세요');
-      } else if (error.status === 401) {
-        showToast('로그인이 필요합니다');
-        setTimeout(() => navigateTo('login.html'), 1500);
-      } else if (error.status === 413) {
-        showError('postForm', '이미지 용량이 너무 큽니다');
-      } else {
-        showError('postForm', '게시글 작성 중 오류가 발생했습니다');
-      }
-      
-    } finally {
-      btn.disabled = false;
-      btn.textContent = originalText;
-    }
+    const tags = parseTags(tagsInput);
+    tags.forEach(tag => {
+      formData.append('tags', tag);
+    });
+
+    selectedFiles.forEach(file => {
+      formData.append('images', file);
+    });
+
+    console.log('게시글 데이터:', {
+      scope,
+      clubId: scope === 'CLUB' ? document.getElementById('clubSelect').value : null,
+      title,
+      content,
+      tags,
+      imageCount: selectedFiles.length
+    });
+
+    await submitPost(formData);
   });
+
+  console.log('폼 제출 이벤트 등록 완료');
 }
 
-// 뒤로가기
-function setupBackButton() {
-  const backBtn = document.querySelector('.header-back');
-  if (backBtn) {
-    backBtn.onclick = () => {
-      const hasContent = 
-        document.getElementById('titleInput').value.trim() ||
-        document.getElementById('contentInput').value.trim() ||
-        imageFiles.length > 0;
-      
-      confirmBack('post_list.html', hasContent, '작성 중인 내용이 사라집니다.');
-    };
-  }
-}
+// ==================== 초기화 ====================
 
-// 페이지 초기화
-async function initPostCreatePage() {
+async function init() {
   console.log('게시글 작성 페이지 초기화');
-  
-  await loadMyClubs();
-  
-  setupBackButton();
-  setupScopeEvents();
-  setupClubSelectEvents();
-  setupTitleEvents();
-  setupContentEvents();
-  setupImageEvents();
-  setupSubmitEvent();
 
-  updateButtonState(formValidation);
-  
+  await initHeader();
+
+  setupBackButton();
+  setupScopeToggle();
+  setupInputEvents();
+  setupFileSelect();
+  setupFormSubmit();
+
+  await loadMyClubs();
+
+  setupClubSelectChange();
+
+  // 초기 검증
+  validateForm();
+
   console.log('게시글 작성 페이지 로딩 완료');
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initPostCreatePage);
+  document.addEventListener('DOMContentLoaded', init);
 } else {
-  initPostCreatePage();
+  init();
 }
 
 console.log('posts/create.js 로드 완료');

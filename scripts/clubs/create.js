@@ -15,7 +15,7 @@ import {
   validateIntro,
   validateLocation,
   validateDescription
-} from '../common/validators.js';
+} from '../common/util/validators.js';
 
 import { processImageFile } from '../common/util/image_util.js';
 

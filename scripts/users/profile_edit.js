@@ -13,7 +13,7 @@ import {
   confirmBack
 } from '../common/util/utils.js';
 
-import { validateNickname } from '../common/validators.js';
+import { validateNickname } from '../common/util/validators.js';
 
 import { 
   processImageFile, 

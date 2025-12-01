@@ -14,7 +14,7 @@ import {
 import { 
   validateEmail, 
   validatePassword 
-} from '../common/validators.js';
+} from '../common/util/validators.js';
  
 // ==================== 상태 관리 ====================
 

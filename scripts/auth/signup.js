@@ -17,7 +17,7 @@ import {
   validatePassword,
   validatePasswordConfirm,
   validateNickname
-} from '../common/validators.js';
+} from '../common/util/validators.js';
 
 import { processImageFile } from '../common/util/image_util.js';
 

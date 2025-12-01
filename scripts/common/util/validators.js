@@ -1,6 +1,6 @@
 // ==================== Import ====================
 
-import { showError, clearError } from '../common/util/utils.js';
+import { showError, clearError } from './utils.js';
 
 // ==================== auth/users ====================
 
@@ -192,34 +192,29 @@ export function validateDescription(value, validation) {
 // ==================== posts ====================
 
 // 제목 검증 (게시물 생성)
-export function validateTitle(title, validation) {
+export function validateTitle(title) {
   if (!title || title.trim() === '') {
     showError('titleInput', '*제목을 입력해주세요');
-    validation.title = false;
     return false;
   }
   
-  if (title.length > 26) { // 최대 26자
-    showError('titleInput', '*제목은 최대 26자까지 작성 가능합니다');
-    validation.title = false;
+  if (title.length > 200) {
+    showError('titleInput', '*제목은 최대 200자까지 작성 가능합니다');
     return false;
   }
   
   clearError('titleInput');
-  validation.title = true;
   return true;
 }
 
 // 내용 검증 (게시물 생성)
-export function validateContent(content, validation) {
+export function validateContent(content) {
   if (!content || content.trim() === '') { // 비어있지 않으면 OK
     showError('contentInput', '*내용을 입력해주세요');
-    validation.content = false;
     return false;
   }
   
   clearError('contentInput');
-  validation.content = true;
   return true;
 }
 
@@ -245,4 +240,4 @@ export function validateDateTimeRange(startsAt, endsAt, validation) {
   return true;
 }
 
-console.log('common/validators.js 로드 완료');
+console.log('common/util/validators.js 로드 완료');
