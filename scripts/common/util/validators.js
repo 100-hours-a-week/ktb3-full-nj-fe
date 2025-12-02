@@ -2,7 +2,164 @@
 
 import { showError, clearError } from './utils.js';
 
-// ==================== auth/users ====================
+// ==================== 순수 검증 함수 (UI 업데이트 없음) ====================
+
+// 이메일 검증 (순수)
+export function isValidEmail(email, isLogin = false) {
+  if (!email || email.trim() === '') {
+    return false;
+  }
+
+  if (isLogin) {
+    return email.includes('@');
+  } else {
+    const emailRegex = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+$/;
+    return emailRegex.test(email);
+  }
+}
+
+// 비밀번호 검증 (순수)
+export function isValidPassword(password, isLogin = false) {
+  if (!password) {
+    return false;
+  }
+
+  if (!isLogin) {
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    if (password.length < 8 || password.length > 20) {
+      return false;
+    }
+    
+    if (!hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+// 비밀번호 확인 검증 (순수)
+export function isValidPasswordConfirm(password, passwordConfirm) {
+  if (!passwordConfirm) {
+    return false;
+  }
+  
+  return password === passwordConfirm;
+}
+
+// 닉네임 검증 (순수)
+export function isValidNickname(nickname) {
+  if (!nickname || nickname.trim() === '') {
+    return false;
+  }
+  
+  if (nickname.includes(' ')) {
+    return false;
+  }
+  
+  if (nickname.length > 10) {
+    return false;
+  }
+  
+  return true;
+}
+
+// 동아리 이름 검증 (순수)
+export function isValidClubName(value) {
+  if (!value || value.trim() === '') {
+    return false;
+  }
+  
+  if (value.length > 30) {
+    return false;
+  }
+  
+  return true;
+}
+
+// 한 줄 소개 검증 (순수)
+export function isValidIntro(value) {
+  if (!value || value.trim() === '') {
+    return false;
+  }
+  
+  if (value.length > 50) {
+    return false;
+  }
+  
+  return true;
+}
+
+// 활동 장소 검증 (순수)
+export function isValidLocation(value) {
+  if (!value || value.trim() === '') {
+    return false;
+  }
+  
+  if (value.length > 100) {
+    return false;
+  }
+  
+  return true;
+}
+
+// 동아리 소개 검증 (순수)
+export function isValidDescription(value) {
+  if (!value || value.trim() === '') {
+    return false;
+  }
+  
+  if (value.length > 500) {
+    return false;
+  }
+  
+  return true;
+}
+
+// 제목 검증 (순수)
+export function isValidTitle(title) {
+  if (!title || title.trim() === '') {
+    return false;
+  }
+  
+  if (title.length > 200) {
+    return false;
+  }
+  
+  return true;
+}
+
+// 내용 검증 (순수)
+export function isValidContent(content) {
+  if (!content || content.trim() === '') {
+    return false;
+  }
+  
+  return true;
+}
+
+// 필수 입력 검증 (순수)
+export function isValidRequired(value) {
+  return value && value.trim() !== '';
+}
+
+// 날짜 범위 검증 (순수)
+export function isValidDateTimeRange(startsAt, endsAt) {
+  if (!startsAt || !endsAt) {
+    return false;
+  }
+  
+  const start = new Date(startsAt);
+  const end = new Date(endsAt);
+  
+  return start < end;
+}
+
+// ==================== UI 업데이트 포함 검증 함수 (기존 호환) ====================
 
 // 이메일 검증 (회원가입/로그인)
 export function validateEmail(email, validation, isLogin = false) {
@@ -12,13 +169,13 @@ export function validateEmail(email, validation, isLogin = false) {
     return false;
   }
 
-  if (isLogin) { // 로그인 : @ 포함 여부만 검증
+  if (isLogin) {
     if (!email.includes('@')) {
       showError('emailInput', '*올바른 이메일 주소 형식을 입력해주세요. (예: example@example.com)');
       validation.email = false;
       return false;
     }
-  } else { // 회원가입 : 영문, 숫자, @, . 만 허용
+  } else {
     const emailRegex = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]+$/;
     if (!emailRegex.test(email)) {
       showError('emailInput', '*올바른 이메일 주소 형식을 입력해주세요. (예: example@example.com)');
@@ -41,7 +198,6 @@ export function validatePassword(password, validation, isLogin = false) {
   }
 
   if (!isLogin) {
-    // 회원가입 & 비밀번호 변경 : 8-20자, 대문자, 소문자, 숫자, 특수문자 각 1개 이상 체크
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumber = /[0-9]/.test(password);
@@ -94,13 +250,13 @@ export function validateNickname(nickname, validation) {
     return false;
   }
   
-  if (nickname.includes(' ')) { // 띄어쓰기 불가
+  if (nickname.includes(' ')) {
     showError('nicknameInput', '*띄어쓰기를 없애주세요');
     validation.nickname = false;
     return false;
   }
   
-  if (nickname.length > 10) { // 10글자 이내
+  if (nickname.length > 10) {
     showError('nicknameInput', '*닉네임은 최대 10자 까지 작성 가능합니다.');
     validation.nickname = false;
     return false;
@@ -110,8 +266,6 @@ export function validateNickname(nickname, validation) {
   validation.nickname = true;
   return true;
 }
-
-// ==================== clubs ====================
 
 // 동아리 이름 검증
 export function validateClubName(value, validation) {
@@ -189,8 +343,6 @@ export function validateDescription(value, validation) {
   return true;
 }
 
-// ==================== posts ====================
-
 // 제목 검증 (게시물 생성)
 export function validateTitle(title) {
   if (!title || title.trim() === '') {
@@ -209,7 +361,7 @@ export function validateTitle(title) {
 
 // 내용 검증 (게시물 생성)
 export function validateContent(content) {
-  if (!content || content.trim() === '') { // 비어있지 않으면 OK
+  if (!content || content.trim() === '') {
     showError('contentInput', '*내용을 입력해주세요');
     return false;
   }
@@ -218,7 +370,10 @@ export function validateContent(content) {
   return true;
 }
 
-// ==================== events ====================
+// 필수 입력 검증
+export function validateRequired(value) {
+  return value && value.trim() !== '';
+}
 
 // 시작/종료 일시 검증 (행사)
 export function validateDateTimeRange(startsAt, endsAt, validation) {

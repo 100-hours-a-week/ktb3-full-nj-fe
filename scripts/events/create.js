@@ -1,26 +1,38 @@
-// 행사 등록 페이지
+// ==================== Import ====================
+
+import { initHeader } from '../common/component/header.js';
+import { initCustomSelects } from '../common/component/customSelect.js';
+import { showLoading, hideLoading } from '../common/util/utils.js';
+import { showToast } from '../common/util/utils.js';
+import { navigateTo, confirmBack } from '../common/util/utils.js';
+import { isValidTitle, isValidContent } from '../common/util/validators.js';
+import { parseTags } from '../common/util/format.js';
+import { createEvent } from '../common/api/event.js';
+import { getMyClubs } from '../common/api/club.js';
+
+// ==================== 상태 관리 ====================
 
 let myClubs = [];
 let imageFiles = [];
 
-const formValidation = {
-  scope: true,
-  club: true,
-  type: false,
-  title: false,
-  content: false,
-  capacity: false,
-  startsAt: false,
-  endsAt: false
+const touchedFields = {
+  clubSelect: false,
+  typeSelect: false,
+  titleInput: false,
+  contentInput: false,
+  capacityInput: false,
+  startsAtInput: false,
+  endsAtInput: false
 };
 
-// 내 동아리 목록 조회
+// ==================== API 호출 ====================
+
 async function loadMyClubs() {
   try {
     const response = await getMyClubs();
     myClubs = response.data || [];
     
-    console.log('내 동아리 목록:', myClubs);
+    console.log('내 동아리 목록:', myClubs.length, '개');
     
     const hiddenSelect = document.getElementById('clubSelect');
     const customWrapper = document.querySelector('.custom-select[data-target="clubSelect"]');
@@ -64,9 +76,7 @@ async function loadMyClubs() {
       menu.appendChild(optDiv);
     });
 
-    if (window.initCustomSelects) {
-      window.initCustomSelects();
-    }
+    initCustomSelects();
 
   } catch (error) {
     console.error('동아리 목록 로드 실패:', error);
@@ -75,56 +85,41 @@ async function loadMyClubs() {
   }
 }
 
-// 행사 등록
-async function createEvent(eventData) {
-  console.log('행사 등록 API 호출');
-  
-  const formData = new FormData();
-  
-  formData.append('scope', eventData.scope);
-  
-  if (eventData.clubId) {
-    formData.append('clubId', eventData.clubId);
+async function submitEvent(formData) {
+  try {
+    showLoading();
+    const response = await createEvent(formData);
+    hideLoading();
+    
+    console.log('행사 등록 완료!', response);
+    
+    showToast('행사가 등록되었습니다', 1500);
+    
+    setTimeout(() => {
+      navigateTo('post_list.html');
+    }, 1500);
+    
+  } catch (error) {
+    hideLoading();
+    console.error('행사 등록 실패:', error);
+    
+    if (error.status === 400) {
+      showToast(error.message || '입력 정보를 확인해주세요', 2000, 'error');
+    } else if (error.status === 401) {
+      showToast('로그인이 필요합니다', 2000, 'error');
+      setTimeout(() => navigateTo('login.html'), 1500);
+    } else if (error.status === 413) {
+      showToast('이미지 용량이 너무 큽니다', 2000, 'error');
+    } else {
+      showToast('행사 등록 중 오류가 발생했습니다', 2000, 'error');
+    }
+    
+    throw error;
   }
-  
-  formData.append('type', eventData.type);
-  formData.append('title', eventData.title);
-  formData.append('content', eventData.content);
-  
-  if (eventData.locationName) {
-    formData.append('locationName', eventData.locationName);
-  }
-  if (eventData.locationAddress) {
-    formData.append('locationAddress', eventData.locationAddress);
-  }
-  if (eventData.locationLink) {
-    formData.append('locationLink', eventData.locationLink);
-  }
-  
-  formData.append('capacity', eventData.capacity);
-  formData.append('startsAt', eventData.startsAt);
-  formData.append('endsAt', eventData.endsAt);
-  
-  if (eventData.tags && eventData.tags.length > 0) {
-    eventData.tags.forEach(tag => {
-      formData.append('tags', tag);
-    });
-  }
-  
-  if (eventData.images && eventData.images.length > 0) {
-    eventData.images.forEach(imageFile => {
-      formData.append('images', imageFile);
-    });
-    console.log(`이미지 ${eventData.images.length}개 포함`);
-  }
-  
-  return await apiRequest('/events', {
-    method: 'POST',
-    body: formData
-  });
 }
 
-// 동아리 옵션 비활성화
+// ==================== UI 렌더링 ====================
+
 function disableClubScope() {
   const clubRadio = document.querySelector('input[name="scope"][value="CLUB"]');
   const clubLabel = clubRadio.closest('.scope-option');
@@ -146,7 +141,6 @@ function disableClubScope() {
   console.log('가입된 동아리가 없어 "내 동아리만" 옵션 비활성화');
 }
 
-// 이미지를 미리보기에 추가
 function addImageToPreview(file) {
   imageFiles.push(file);
   const fileIndex = imageFiles.length - 1;
@@ -177,7 +171,6 @@ function addImageToPreview(file) {
   reader.readAsDataURL(file);
 }
 
-// 이미지를 미리보기에서 삭제
 function removeImageFromPreview(fileIndex) {
   imageFiles[fileIndex] = null;
   
@@ -187,23 +180,214 @@ function removeImageFromPreview(fileIndex) {
   }
   
   console.log(`이미지 삭제됨. 현재 ${getValidImageCount()}개`);
+  updateButtonState();
 }
 
-// 유효한 이미지 개수 계산
+// ==================== 유틸리티 ====================
+
 function getValidImageCount() {
   return imageFiles.filter(file => file !== null).length;
 }
 
-// 유효한 이미지 파일들만 반환
 function getValidImageFiles() {
   return imageFiles.filter(file => file !== null);
 }
 
-// 공개 범위 선택
+function createEventFormData() {
+  const formData = new FormData();
+  
+  const scope = document.querySelector('input[name="scope"]:checked').value;
+  formData.append('scope', scope);
+  
+  if (scope === 'CLUB') {
+    const clubId = document.getElementById('clubSelect').value;
+    formData.append('clubId', clubId);
+  }
+  
+  formData.append('type', document.getElementById('typeSelect').value);
+  formData.append('title', document.getElementById('titleInput').value.trim());
+  formData.append('content', document.getElementById('contentInput').value.trim());
+  formData.append('locationName', document.getElementById('locationNameInput').value.trim());
+  formData.append('locationAddress', document.getElementById('locationAddressInput').value.trim());
+  formData.append('locationLink', document.getElementById('locationLinkInput').value.trim());
+  formData.append('capacity', document.getElementById('capacityInput').value);
+  formData.append('startsAt', document.getElementById('startsAtInput').value);
+  formData.append('endsAt', document.getElementById('endsAtInput').value);
+  
+  const tagsInput = document.getElementById('tagsInput').value.trim();
+  const tags = parseTags(tagsInput);
+  tags.forEach(tag => {
+    formData.append('tags', tag);
+  });
+  
+  const validImages = getValidImageFiles();
+  validImages.forEach(file => {
+    formData.append('images', file);
+  });
+  
+  return formData;
+}
+
+// ==================== 검증 ====================
+
+// showErrors: true일 때만 에러 메시지 표시
+function validateForm(showErrors = false) {
+  const scope = document.querySelector('input[name="scope"]:checked').value;
+  const clubId = document.getElementById('clubSelect').value;
+  const type = document.getElementById('typeSelect').value;
+  const title = document.getElementById('titleInput').value.trim();
+  const content = document.getElementById('contentInput').value.trim();
+  const capacity = parseInt(document.getElementById('capacityInput').value);
+  const startsAt = document.getElementById('startsAtInput').value;
+  const endsAt = document.getElementById('endsAtInput').value;
+  
+  let isValid = true;
+  
+  // 공개 범위 - CLUB일 때만 동아리 선택 필요
+  if (scope === 'CLUB' && !clubId) {
+    if (showErrors && touchedFields.clubSelect) {
+      setFieldError('clubSelect', '동아리를 선택해주세요');
+    }
+    isValid = false;
+  } else {
+    clearFieldError('clubSelect');
+  }
+  
+  // 행사 유형
+  if (!type) {
+    if (showErrors && touchedFields.typeSelect) {
+      setFieldError('typeSelect', '행사 유형을 선택해주세요');
+    }
+    isValid = false;
+  } else {
+    clearFieldError('typeSelect');
+  }
+  
+  // ✅ 제목 - 순수 검증 함수 사용
+  if (!isValidTitle(title)) {
+    if (showErrors && touchedFields.titleInput) {
+      if (!title || title.trim() === '') {
+        setFieldError('titleInput', '제목을 입력해주세요');
+      } else if (title.length > 200) {
+        setFieldError('titleInput', '제목은 최대 200자까지 작성 가능합니다');
+      }
+    }
+    isValid = false;
+  } else {
+    clearFieldError('titleInput');
+  }
+  
+  // ✅ 내용 - 순수 검증 함수 사용
+  if (!isValidContent(content)) {
+    if (showErrors && touchedFields.contentInput) {
+      setFieldError('contentInput', '내용을 입력해주세요');
+    }
+    isValid = false;
+  } else {
+    clearFieldError('contentInput');
+  }
+  
+  // 수용 인원
+  if (!capacity || capacity <= 0) {
+    if (showErrors && touchedFields.capacityInput) {
+      setFieldError('capacityInput', '수용 인원을 입력해주세요 (1명 이상)');
+    }
+    isValid = false;
+  } else {
+    clearFieldError('capacityInput');
+  }
+  
+  // 시작 일시
+  if (!startsAt) {
+    if (showErrors && touchedFields.startsAtInput) {
+      setFieldError('startsAtInput', '시작 일시를 입력해주세요');
+    }
+    isValid = false;
+  } else {
+    clearFieldError('startsAtInput');
+  }
+  
+  // 종료 일시
+  if (!endsAt) {
+    if (showErrors && touchedFields.endsAtInput) {
+      setFieldError('endsAtInput', '종료 일시를 입력해주세요');
+    }
+    isValid = false;
+  } else {
+    clearFieldError('endsAtInput');
+  }
+  
+  // 시작/종료 일시 범위 검증
+  if (startsAt && endsAt) {
+    const start = new Date(startsAt);
+    const end = new Date(endsAt);
+    
+    if (start >= end) {
+      if (showErrors && touchedFields.endsAtInput) {
+        setFieldError('endsAtInput', '종료 일시는 시작 일시보다 늦어야 합니다');
+      }
+      isValid = false;
+    }
+  }
+  
+  return isValid;
+}
+
+// 버튼 활성화 상태만 업데이트 (에러 표시 안 함)
+function updateButtonState() {
+  const isValid = validateForm(false);
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = !isValid;
+}
+
+// 특정 필드만 검증 (blur 이벤트용)
+function validateField(fieldId) {
+  touchedFields[fieldId] = true;
+  validateForm(true);
+  updateButtonState();
+}
+
+function setFieldError(fieldId, message) {
+  const field = document.getElementById(fieldId);
+  const helperText = field.parentElement.querySelector('.helper-text');
+
+  field.classList.add('error');
+  if (helperText) {
+    helperText.textContent = message;
+    helperText.classList.add('error');
+  }
+}
+
+function clearFieldError(fieldId) {
+  const field = document.getElementById(fieldId);
+  const helperText = field.parentElement.querySelector('.helper-text');
+
+  field.classList.remove('error');
+  if (helperText) {
+    helperText.textContent = '';
+    helperText.classList.remove('error');
+  }
+}
+
+// ==================== 이벤트 핸들러 ====================
+
+function setupBackButton() {
+  const backBtn = document.getElementById('backBtn');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      const hasContent = 
+        document.getElementById('titleInput').value.trim() ||
+        document.getElementById('contentInput').value.trim() ||
+        imageFiles.length > 0;
+      
+      confirmBack('post_list.html', hasContent, '작성 중인 내용이 사라집니다.');
+    });
+  }
+}
+
 function setupScopeEvents() {
   const scopeRadios = document.querySelectorAll('input[name="scope"]');
   const clubSelectGroup = document.getElementById('clubSelectGroup');
-  const clubSelect = document.getElementById('clubSelect');
   
   scopeRadios.forEach(radio => {
     radio.addEventListener('change', (e) => {
@@ -217,150 +401,85 @@ function setupScopeEvents() {
         }
         
         clubSelectGroup.style.display = 'block';
-        formValidation.club = false;
-        clubSelect.required = true;
       } else {
         clubSelectGroup.style.display = 'none';
-        formValidation.club = true;
-        clubSelect.required = false;
-        clubSelect.value = '';
-        clearError('clubSelect');
+        document.getElementById('clubSelect').value = '';
+        clearFieldError('clubSelect');
       }
       
-      updateButtonState(formValidation);
+      updateButtonState();
     });
   });
+  
+  console.log('공개 범위 이벤트 등록 완료');
 }
 
-// 동아리 선택
-function setupClubSelectEvents() {
+function setupInputEvents() {
   const clubSelect = document.getElementById('clubSelect');
-  
-  clubSelect.addEventListener('change', (e) => {
-    if (e.target.value) {
-      formValidation.club = true;
-      clearError('clubSelect');
-    } else {
-      formValidation.club = false;
-      showError('clubSelect', '동아리를 선택해주세요');
-    }
-    updateButtonState(formValidation);
-  });
-}
-
-// 행사 유형 선택
-function setupTypeEvents() {
   const typeSelect = document.getElementById('typeSelect');
-  
-  typeSelect.addEventListener('change', (e) => {
-    if (e.target.value) {
-      formValidation.type = true;
-      clearError('typeSelect');
-    } else {
-      formValidation.type = false;
-      showError('typeSelect', '행사 유형을 선택해주세요');
-    }
-    updateButtonState(formValidation);
-  });
-}
-
-// 제목 입력
-function setupTitleEvents() {
   const titleInput = document.getElementById('titleInput');
-  
-  titleInput.addEventListener('blur', function() {
-    validateTitle(this.value.trim(), formValidation);
-    updateButtonState(formValidation);
-  });
-  
-  titleInput.addEventListener('input', function() {
-    if (this.value) clearError('titleInput');
-    updateButtonState(formValidation);
-  });
-}
-
-// 내용 입력
-function setupContentEvents() {
   const contentInput = document.getElementById('contentInput');
-  
-  contentInput.addEventListener('blur', function() {
-    validateContent(this.value.trim(), formValidation);
-    updateButtonState(formValidation);
-  });
-  
-  contentInput.addEventListener('input', function() {
-    if (this.value) clearError('contentInput');
-    updateButtonState(formValidation);
-  });
-}
-
-// 수용 인원 입력
-function setupCapacityEvents() {
   const capacityInput = document.getElementById('capacityInput');
-  
-  capacityInput.addEventListener('blur', function() {
-    const value = parseInt(this.value);
-    
-    if (!value || value <= 0) {
-      formValidation.capacity = false;
-      showError('capacityInput', '수용 인원을 입력해주세요 (1명 이상)');
-    } else {
-      formValidation.capacity = true;
-      clearError('capacityInput');
-    }
-    
-    updateButtonState(formValidation);
-  });
-  
-  capacityInput.addEventListener('input', function() {
-    if (this.value) clearError('capacityInput');
-    updateButtonState(formValidation);
-  });
-}
-
-// 일시 입력
-function setupDateTimeEvents() {
   const startsAtInput = document.getElementById('startsAtInput');
   const endsAtInput = document.getElementById('endsAtInput');
   
-  startsAtInput.addEventListener('change', function() {
-    if (this.value) {
-      formValidation.startsAt = true;
-      clearError('startsAtInput');
-      
-      if (endsAtInput.value) {
-        validateDateTimeRange(startsAtInput.value, endsAtInput.value, formValidation);
-      }
-    } else {
-      formValidation.startsAt = false;
-      showError('startsAtInput', '시작 일시를 입력해주세요');
-    }
-    updateButtonState(formValidation);
+  // blur: 포커스를 잃을 때 해당 필드만 검증
+  clubSelect.addEventListener('blur', () => validateField('clubSelect'));
+  typeSelect.addEventListener('blur', () => validateField('typeSelect'));
+  titleInput.addEventListener('blur', () => validateField('titleInput'));
+  contentInput.addEventListener('blur', () => validateField('contentInput'));
+  capacityInput.addEventListener('blur', () => validateField('capacityInput'));
+  startsAtInput.addEventListener('blur', () => validateField('startsAtInput'));
+  endsAtInput.addEventListener('blur', () => validateField('endsAtInput'));
+  
+  // input/change: 입력 중에는 에러만 제거, 버튼 상태만 업데이트
+  clubSelect.addEventListener('change', () => {
+    clearFieldError('clubSelect');
+    updateButtonState();
   });
   
-  endsAtInput.addEventListener('change', function() {
-    if (this.value) {
-      formValidation.endsAt = true;
-      clearError('endsAtInput');
-      
-      if (startsAtInput.value) {
-        validateDateTimeRange(startsAtInput.value, endsAtInput.value, formValidation);
-      }
-    } else {
-      formValidation.endsAt = false;
-      showError('endsAtInput', '종료 일시를 입력해주세요');
-    }
-    updateButtonState(formValidation);
+  typeSelect.addEventListener('change', () => {
+    clearFieldError('typeSelect');
+    updateButtonState();
   });
+  
+  titleInput.addEventListener('input', () => {
+    clearFieldError('titleInput');
+    updateButtonState();
+  });
+  
+  contentInput.addEventListener('input', () => {
+    clearFieldError('contentInput');
+    updateButtonState();
+  });
+  
+  capacityInput.addEventListener('input', () => {
+    clearFieldError('capacityInput');
+    updateButtonState();
+  });
+  
+  startsAtInput.addEventListener('change', () => {
+    clearFieldError('startsAtInput');
+    updateButtonState();
+  });
+  
+  endsAtInput.addEventListener('change', () => {
+    clearFieldError('endsAtInput');
+    updateButtonState();
+  });
+  
+  console.log('입력 이벤트 등록 완료');
 }
 
-// 이미지 업로드
 function setupImageEvents() {
-  document.getElementById('fileSelectBtn').addEventListener('click', function() {
-    document.getElementById('imageInput').click();
+  const fileSelectBtn = document.getElementById('fileSelectBtn');
+  const imageInput = document.getElementById('imageInput');
+  
+  fileSelectBtn.addEventListener('click', function() {
+    imageInput.click();
   });
   
-  document.getElementById('imageInput').addEventListener('change', function(e) {
+  imageInput.addEventListener('change', function(e) {
     const files = Array.from(e.target.files);
     
     files.forEach(file => {
@@ -372,55 +491,23 @@ function setupImageEvents() {
     this.value = '';
     console.log(`${files.length}개 이미지 추가됨. 총 ${imageFiles.length}개`);
   });
+  
+  console.log('이미지 업로드 이벤트 등록 완료');
 }
 
-// 폼 제출
 function setupSubmitEvent() {
-  document.getElementById('eventForm').addEventListener('submit', async function(e) {
+  const eventForm = document.getElementById('eventForm');
+  
+  eventForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    const scope = document.querySelector('input[name="scope"]:checked').value;
-    const clubId = scope === 'CLUB' ? document.getElementById('clubSelect').value : null;
-    const type = document.getElementById('typeSelect').value;
-    const title = document.getElementById('titleInput').value.trim();
-    const content = document.getElementById('contentInput').value.trim();
-    const locationName = document.getElementById('locationNameInput').value.trim() || null;
-    const locationAddress = document.getElementById('locationAddressInput').value.trim() || null;
-    const locationLink = document.getElementById('locationLinkInput').value.trim() || null;
-    const capacity = parseInt(document.getElementById('capacityInput').value);
-    const startsAt = document.getElementById('startsAtInput').value;
-    const endsAt = document.getElementById('endsAtInput').value;
-    const tagsInput = document.getElementById('tagsInput').value.trim();
-    const tags = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+    // 제출 시에는 모든 필드를 touched로 표시하고 에러 표시
+    Object.keys(touchedFields).forEach(key => {
+      touchedFields[key] = true;
+    });
     
-    // 검증
-    if (scope === 'CLUB' && !clubId) {
-      showError('clubSelect', '동아리를 선택해주세요');
-      return;
-    }
-    if (!type) {
-      showError('typeSelect', '행사 유형을 선택해주세요');
-      return;
-    }
-    if (!validateTitle(title, formValidation)) {
-      return;
-    }
-    if (!validateContent(content, formValidation)) {
-      return;
-    }
-    if (!capacity || capacity <= 0) {
-      showError('capacityInput', '수용 인원을 입력해주세요');
-      return;
-    }
-    if (!startsAt) {
-      showError('startsAtInput', '시작 일시를 입력해주세요');
-      return;
-    }
-    if (!endsAt) {
-      showError('endsAtInput', '종료 일시를 입력해주세요');
-      return;
-    }
-    if (!validateDateTimeRange(startsAt, endsAt, formValidation)) {
+    if (!validateForm(true)) {
+      showToast('필수 항목을 입력해주세요', 2000, 'error');
       return;
     }
     
@@ -430,91 +517,43 @@ function setupSubmitEvent() {
     btn.textContent = '등록 중...';
     
     try {
-      const eventData = {
-        scope: scope,
-        clubId: clubId,
-        type: type,
-        title: title,
-        content: content,
-        locationName: locationName,
-        locationAddress: locationAddress,
-        locationLink: locationLink,
-        capacity: capacity,
-        startsAt: startsAt,
-        endsAt: endsAt,
-        tags: tags,
-        images: getValidImageFiles()
-      };
-      
-      const response = await createEvent(eventData);
-      
-      console.log('행사 등록 완료!', response);
-      
-      showToast(response.message || '행사가 등록되었습니다');
-      
-      navigateTo('post_list.html', 2000);
+      const formData = createEventFormData();
+      await submitEvent(formData);
       
     } catch (error) {
-      console.error('행사 등록 실패:', error);
-      
-      if (error.status === 400) {
-        showError('eventForm', error.message || '입력 정보를 확인해주세요');
-      } else if (error.status === 401) {
-        showToast('로그인이 필요합니다');
-        setTimeout(() => navigateTo('login.html'), 1500);
-      } else if (error.status === 413) {
-        showError('eventForm', '이미지 용량이 너무 큽니다');
-      } else {
-        showError('eventForm', '행사 등록 중 오류가 발생했습니다');
-      }
-      
-    } finally {
       btn.disabled = false;
       btn.textContent = originalText;
     }
   });
+  
+  console.log('폼 제출 이벤트 등록 완료');
 }
 
-// 뒤로가기
-function setupBackButton() {
-  const backBtn = document.querySelector('.header-back');
-  if (backBtn) {
-    backBtn.onclick = () => {
-      const hasContent = 
-        document.getElementById('titleInput').value.trim() ||
-        document.getElementById('contentInput').value.trim() ||
-        imageFiles.length > 0;
-      
-      confirmBack('post_list.html', hasContent, '작성 중인 내용이 사라집니다.');
-    };
-  }
-}
+// ==================== 초기화 ====================
 
-async function initEventCreatePage() {
+async function init() {
   console.log('행사 등록 페이지 초기화');
+  
+  await initHeader();
   
   await loadMyClubs();
   
   setupBackButton();
   setupScopeEvents();
-  setupClubSelectEvents();
-  setupTypeEvents();
-  setupTitleEvents();
-  setupContentEvents();
-  setupCapacityEvents();
-  setupDateTimeEvents();
+  setupInputEvents();
   setupImageEvents();
   setupSubmitEvent();
 
-  updateButtonState(formValidation);
+  // 초기에는 버튼 상태만 업데이트 (에러 표시 안 함)
+  updateButtonState();
   
   console.log('행사 등록 페이지 로딩 완료');
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initEventCreatePage);
+  document.addEventListener('DOMContentLoaded', init);
 } else {
-  initEventCreatePage();
+  init();
 }
 
 console.log('events/create.js 로드 완료');
