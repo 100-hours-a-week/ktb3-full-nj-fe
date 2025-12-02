@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>행사 수정 - C.Groove</title>
+  <link rel="stylesheet" href="styles/common.css">
+  <link rel="stylesheet" href="styles/forms.css">
+  <link rel="stylesheet" href="styles/post.css">
+</head>
+<body class="profile-page">
+  <div id="globalLoading">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+      <div class="loading-text">로딩 중...</div>
+    </div>
+  </div>
+  
+  <div class="page-container">
+    <!-- 헤더 -->
+    <header class="header">
+      <div class="header-container">
+        <button class="header-back" id="backBtn">‹</button>
+        <h1 class="logo bagel-fat-one-regular">C.Groove</h1>
+        <div class="header-spacer"></div>
+      </div>
+    </header>
+    
+    <!-- 메인 컨텐츠 -->
+    <div class="form-container">
+      <div class="form-wrapper">
+        <h2 class="form-title">행사 수정</h2>
+        
+        <form id="editForm">
+          <!-- ✅ 읽기 전용: 공개 범위 -->
+          <div class="form-group">
+            <label class="form-label">공개 범위 (수정 불가)</label>
+            <div class="readonly-field" id="scopeDisplay">로딩 중...</div>
+          </div>
+          
+          <!-- ✅ 읽기 전용: 동아리 (CLUB 범위일 때만 표시) -->
+          <div class="form-group" id="clubDisplayGroup" style="display: none;">
+            <label class="form-label">동아리 (수정 불가)</label>
+            <div class="readonly-field" id="clubDisplay">로딩 중...</div>
+          </div>
+          
+          <!-- ✅ 읽기 전용: 행사 유형 -->
+          <div class="form-group">
+            <label class="form-label">행사 유형 (수정 불가)</label>
+            <div class="readonly-field" id="typeDisplay">로딩 중...</div>
+          </div>
+          
+          <!-- 제목 -->
+          <div class="form-group">
+            <label for="titleInput" class="form-label required">제목</label>
+            <input
+              type="text"
+              id="titleInput"
+              class="form-input"
+              placeholder="행사 제목을 입력해주세요"
+              maxlength="200"
+            >
+            <div class="helper-text"></div>
+          </div>
+          
+          <!-- 내용 -->
+          <div class="form-group">
+            <label for="contentInput" class="form-label required">내용</label>
+            <textarea
+              id="contentInput"
+              class="form-textarea"
+              placeholder="행사 내용을 입력해주세요"
+              rows="10"
+            ></textarea>
+            <div class="helper-text"></div>
+          </div>
+          
+          <!-- 장소명 -->
+          <div class="form-group">
+            <label for="locationNameInput" class="form-label">장소명</label>
+            <input
+              type="text"
+              id="locationNameInput"
+              class="form-input"
+              placeholder="예: 강남 댄스 스튜디오"
+            >
+            <div class="helper-text"></div>
+          </div>
+          
+          <!-- 주소 -->
+          <div class="form-group">
+            <label for="locationAddressInput" class="form-label">주소</label>
+            <input
+              type="text"
+              id="locationAddressInput"
+              class="form-input"
+              placeholder="예: 서울특별시 강남구 테헤란로 123"
+            >
+            <div class="helper-text"></div>
+          </div>
+          
+          <!-- 링크 -->
+          <div class="form-group">
+            <label for="locationLinkInput" class="form-label">링크</label>
+            <input
+              type="url"
+              id="locationLinkInput"
+              class="form-input"
+              placeholder="예: https://map.naver.com/..."
+            >
+            <div class="helper-text"></div>
+          </div>
+          
+          <!-- 수용 인원 -->
+          <div class="form-group">
+            <label for="capacityInput" class="form-label required">수용 인원</label>
+            <input
+              type="number"
+              id="capacityInput"
+              class="form-input"
+              placeholder="최대 참여 가능 인원"
+              min="1"
+            >
+            <div class="helper-text"></div>
+          </div>
+          
+          <!-- 시작 일시 -->
+          <div class="form-group">
+            <label for="startsAtInput" class="form-label required">시작 일시</label>
+            <input
+              type="datetime-local"
+              id="startsAtInput"
+              class="form-input"
+            >
+            <div class="helper-text"></div>
+          </div>
+          
+          <!-- 종료 일시 -->
+          <div class="form-group">
+            <label for="endsAtInput" class="form-label required">종료 일시</label>
+            <input
+              type="datetime-local"
+              id="endsAtInput"
+              class="form-input"
+            >
+            <div class="helper-text"></div>
+          </div>
+          
+          <!-- 태그 -->
+          <div class="form-group">
+            <label for="tagsInput" class="form-label">태그</label>
+            <input
+              type="text"
+              id="tagsInput"
+              class="form-input"
+              placeholder="#힙합 #배틀 #초급환영 (쉼표 또는 공백으로 구분)"
+            >
+            <div class="helper-text">쉼표(,) 또는 공백으로 구분하여 입력하세요</div>
+          </div>
+          
+          <!-- 이미지 업로드 -->
+          <div class="form-group">
+            <label class="form-label">이미지</label>
+            <button type="button" class="btn btn-secondary" id="fileSelectBtn">
+              이미지 추가
+            </button>
+            <input
+              type="file"
+              id="imageInput"
+              accept="image/*"
+              multiple
+              style="display: none;"
+            >
+            <div class="helper-text">최대 5개까지 업로드 가능합니다</div>
+            
+            <div class="image-preview-container" id="imagePreviewContainer"></div>
+          </div>
+          
+          <!-- 제출 버튼 -->
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-large" id="submitBtn" disabled>
+              수정하기
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  </div>
+  
+  <script type="module" src="scripts/events/edit.js"></script>
+</body>
+</html>
