@@ -37,51 +37,73 @@ async function loadMyClubs() {
     const hiddenSelect = document.getElementById('clubSelect');
     const customWrapper = document.querySelector('.custom-select[data-target="clubSelect"]');
     
+    // 요소가 없으면 중단
     if (!hiddenSelect || !customWrapper) {
       console.warn('clubSelect 요소를 찾을 수 없습니다');
-      return;
+      return; 
     }
 
     const menu = customWrapper.querySelector('.custom-select-menu');
-    if (!menu) {
-      console.warn('custom-select-menu를 찾을 수 없습니다');
-      return;
-    }
-
+    
+    // 1. 동아리가 없을 때
     if (myClubs.length === 0) {
       console.log('내 동아리 없음 - CLUB 범위 비활성화');
       disableClubScope();
       
       hiddenSelect.innerHTML = '<option value="">동아리가 없습니다</option>';
-      menu.innerHTML = '<div class="custom-select-option" data-value="">동아리가 없습니다</div>';
+      
+      if (menu) {
+        menu.innerHTML = '<div class="custom-select-option" data-value="">동아리가 없습니다</div>';
+      }
+      
+      // 텍스트 변경 및 스타일 초기화
+      const trigger = customWrapper.querySelector('.custom-select-trigger');
+      if (trigger) trigger.textContent = '동아리가 없습니다';
+
+      initCustomSelects(); 
+      customWrapper.classList.remove('has-value'); // 회색 처리
       return;
     }
 
+    // 2. 동아리가 있을 때
     hiddenSelect.innerHTML = '<option value="">동아리를 선택해주세요</option>';
-    menu.innerHTML = '<div class="custom-select-option" data-value="">동아리를 선택해주세요</div>';
+    
+    if (menu) {
+        // [통일] 메뉴에 '선택해주세요' 항목 포함
+        menu.innerHTML = '<div class="custom-select-option" data-value="">동아리를 선택해주세요</div>';
 
-    myClubs.forEach((club) => {
-      const id = club.clubId;
-      const name = club.clubName || club.name || `클럽 ${id}`;
+        myClubs.forEach((club) => {
+          const id = club.clubId;
+          const name = club.clubName || club.name || `클럽 ${id}`;
 
-      const option = document.createElement('option');
-      option.value = id;
-      option.textContent = name;
-      hiddenSelect.appendChild(option);
+          // Hidden Select 옵션 추가
+          const option = document.createElement('option');
+          option.value = id;
+          option.textContent = name;
+          hiddenSelect.appendChild(option);
 
-      const optDiv = document.createElement('div');
-      optDiv.className = 'custom-select-option';
-      optDiv.dataset.value = id;
-      optDiv.textContent = name;
-      menu.appendChild(optDiv);
-    });
+          // Custom Menu 아이템 추가
+          const optDiv = document.createElement('div');
+          optDiv.className = 'custom-select-option';
+          optDiv.dataset.value = id;
+          optDiv.textContent = name;
+          menu.appendChild(optDiv);
+        });
+    }
 
+    // 3. 초기화 및 스타일 적용
     initCustomSelects();
+
+    // [핵심] 초기값이 비어있으면 회색(Placeholder) 스타일 강제 적용
+    if (hiddenSelect.value === "") {
+        customWrapper.classList.remove('has-value');
+    }
 
   } catch (error) {
     console.error('동아리 목록 로드 실패:', error);
     showToast('동아리 목록을 불러오는데 실패했습니다', 3000, 'error');
     disableClubScope();
+    initCustomSelects(); 
   }
 }
 
@@ -122,23 +144,25 @@ async function submitEvent(formData) {
 
 function disableClubScope() {
   const clubRadio = document.querySelector('input[name="scope"][value="CLUB"]');
-  const clubLabel = clubRadio.closest('.scope-option');
+  const clubLabel = clubRadio ? clubRadio.closest('.scope-option') : null;
   
-  clubRadio.disabled = true;
-  clubLabel.style.opacity = '0.5';
-  clubLabel.style.cursor = 'not-allowed';
-  
-  const helpText = document.createElement('div');
-  helpText.className = 'scope-help-text';
-  helpText.textContent = '동아리에 가입하면 사용할 수 있어요';
-  helpText.style.fontSize = '13px';
-  helpText.style.color = '#999';
-  helpText.style.marginTop = '8px';
-  
-  const scopeOptions = document.querySelector('.scope-options');
-  scopeOptions.appendChild(helpText);
-  
-  console.log('가입된 동아리가 없어 "내 동아리만" 옵션 비활성화');
+  if (clubRadio && clubLabel) {
+      clubRadio.disabled = true;
+      clubLabel.style.opacity = '0.5';
+      clubLabel.style.cursor = 'not-allowed';
+      
+      const helpText = document.createElement('div');
+      helpText.className = 'scope-help-text';
+      helpText.textContent = '동아리에 가입하면 사용할 수 있어요';
+      helpText.style.fontSize = '13px';
+      helpText.style.color = '#999';
+      helpText.style.marginTop = '8px';
+      
+      const scopeOptions = document.querySelector('.scope-options');
+      if(scopeOptions) scopeOptions.appendChild(helpText);
+      
+      console.log('가입된 동아리가 없어 "내 동아리만" 옵션 비활성화');
+  }
 }
 
 function addImageToPreview(file) {
@@ -207,9 +231,17 @@ function createEventFormData() {
   formData.append('type', document.getElementById('typeSelect').value);
   formData.append('title', document.getElementById('titleInput').value.trim());
   formData.append('content', document.getElementById('contentInput').value.trim());
-  formData.append('locationName', document.getElementById('locationNameInput').value.trim());
-  formData.append('locationAddress', document.getElementById('locationAddressInput').value.trim());
-  formData.append('locationLink', document.getElementById('locationLinkInput').value.trim());
+  
+  // 선택적 필드 처리
+  const locationName = document.getElementById('locationNameInput').value.trim();
+  if (locationName) formData.append('locationName', locationName);
+  
+  const locationAddress = document.getElementById('locationAddressInput').value.trim();
+  if (locationAddress) formData.append('locationAddress', locationAddress);
+  
+  const locationLink = document.getElementById('locationLinkInput').value.trim();
+  if (locationLink) formData.append('locationLink', locationLink);
+  
   formData.append('capacity', document.getElementById('capacityInput').value);
   formData.append('startsAt', document.getElementById('startsAtInput').value);
   formData.append('endsAt', document.getElementById('endsAtInput').value);
@@ -230,7 +262,6 @@ function createEventFormData() {
 
 // ==================== 검증 ====================
 
-// showErrors: true일 때만 에러 메시지 표시
 function validateForm(showErrors = false) {
   const scope = document.querySelector('input[name="scope"]:checked').value;
   const clubId = document.getElementById('clubSelect').value;
@@ -263,7 +294,7 @@ function validateForm(showErrors = false) {
     clearFieldError('typeSelect');
   }
   
-  // ✅ 제목 - 순수 검증 함수 사용
+  // 제목
   if (!isValidTitle(title)) {
     if (showErrors && touchedFields.titleInput) {
       if (!title || title.trim() === '') {
@@ -277,7 +308,7 @@ function validateForm(showErrors = false) {
     clearFieldError('titleInput');
   }
   
-  // ✅ 내용 - 순수 검증 함수 사용
+  // 내용
   if (!isValidContent(content)) {
     if (showErrors && touchedFields.contentInput) {
       setFieldError('contentInput', '내용을 입력해주세요');
@@ -333,14 +364,12 @@ function validateForm(showErrors = false) {
   return isValid;
 }
 
-// 버튼 활성화 상태만 업데이트 (에러 표시 안 함)
 function updateButtonState() {
   const isValid = validateForm(false);
   const submitBtn = document.getElementById('submitBtn');
-  submitBtn.disabled = !isValid;
+  if(submitBtn) submitBtn.disabled = !isValid;
 }
 
-// 특정 필드만 검증 (blur 이벤트용)
 function validateField(fieldId) {
   touchedFields[fieldId] = true;
   validateForm(true);
@@ -349,9 +378,19 @@ function validateField(fieldId) {
 
 function setFieldError(fieldId, message) {
   const field = document.getElementById(fieldId);
-  const helperText = field.parentElement.querySelector('.helper-text');
+  if (!field) return;
+  const parent = field.closest('.form-group') || field.parentElement;
+  const helperText = parent.querySelector('.helper-text');
 
   field.classList.add('error');
+  // custom-select의 경우 trigger에도 error 클래스 추가
+  if (field.classList.contains('custom-select-trigger')) {
+      field.classList.add('error');
+  } else {
+      const trigger = parent.querySelector('.custom-select-trigger');
+      if (trigger) trigger.classList.add('error');
+  }
+
   if (helperText) {
     helperText.textContent = message;
     helperText.classList.add('error');
@@ -360,9 +399,15 @@ function setFieldError(fieldId, message) {
 
 function clearFieldError(fieldId) {
   const field = document.getElementById(fieldId);
-  const helperText = field.parentElement.querySelector('.helper-text');
+  if (!field) return;
+  const parent = field.closest('.form-group') || field.parentElement;
+  const helperText = parent.querySelector('.helper-text');
 
   field.classList.remove('error');
+  // custom-select trigger error 제거
+  const trigger = parent.querySelector('.custom-select-trigger');
+  if (trigger) trigger.classList.remove('error');
+
   if (helperText) {
     helperText.textContent = '';
     helperText.classList.remove('error');
@@ -400,10 +445,11 @@ function setupScopeEvents() {
           return;
         }
         
-        clubSelectGroup.style.display = 'block';
+        if(clubSelectGroup) clubSelectGroup.style.display = 'block';
       } else {
-        clubSelectGroup.style.display = 'none';
-        document.getElementById('clubSelect').value = '';
+        if(clubSelectGroup) clubSelectGroup.style.display = 'none';
+        const clubSelect = document.getElementById('clubSelect');
+        if(clubSelect) clubSelect.value = '';
         clearFieldError('clubSelect');
       }
       
@@ -424,46 +470,46 @@ function setupInputEvents() {
   const endsAtInput = document.getElementById('endsAtInput');
   
   // blur: 포커스를 잃을 때 해당 필드만 검증
-  clubSelect.addEventListener('blur', () => validateField('clubSelect'));
-  typeSelect.addEventListener('blur', () => validateField('typeSelect'));
-  titleInput.addEventListener('blur', () => validateField('titleInput'));
-  contentInput.addEventListener('blur', () => validateField('contentInput'));
-  capacityInput.addEventListener('blur', () => validateField('capacityInput'));
-  startsAtInput.addEventListener('blur', () => validateField('startsAtInput'));
-  endsAtInput.addEventListener('blur', () => validateField('endsAtInput'));
+  if(clubSelect) clubSelect.addEventListener('blur', () => validateField('clubSelect'));
+  if(typeSelect) typeSelect.addEventListener('blur', () => validateField('typeSelect'));
+  if(titleInput) titleInput.addEventListener('blur', () => validateField('titleInput'));
+  if(contentInput) contentInput.addEventListener('blur', () => validateField('contentInput'));
+  if(capacityInput) capacityInput.addEventListener('blur', () => validateField('capacityInput'));
+  if(startsAtInput) startsAtInput.addEventListener('blur', () => validateField('startsAtInput'));
+  if(endsAtInput) endsAtInput.addEventListener('blur', () => validateField('endsAtInput'));
   
   // input/change: 입력 중에는 에러만 제거, 버튼 상태만 업데이트
-  clubSelect.addEventListener('change', () => {
+  if(clubSelect) clubSelect.addEventListener('change', () => {
     clearFieldError('clubSelect');
     updateButtonState();
   });
   
-  typeSelect.addEventListener('change', () => {
+  if(typeSelect) typeSelect.addEventListener('change', () => {
     clearFieldError('typeSelect');
     updateButtonState();
   });
   
-  titleInput.addEventListener('input', () => {
+  if(titleInput) titleInput.addEventListener('input', () => {
     clearFieldError('titleInput');
     updateButtonState();
   });
   
-  contentInput.addEventListener('input', () => {
+  if(contentInput) contentInput.addEventListener('input', () => {
     clearFieldError('contentInput');
     updateButtonState();
   });
   
-  capacityInput.addEventListener('input', () => {
+  if(capacityInput) capacityInput.addEventListener('input', () => {
     clearFieldError('capacityInput');
     updateButtonState();
   });
   
-  startsAtInput.addEventListener('change', () => {
+  if(startsAtInput) startsAtInput.addEventListener('change', () => {
     clearFieldError('startsAtInput');
     updateButtonState();
   });
   
-  endsAtInput.addEventListener('change', () => {
+  if(endsAtInput) endsAtInput.addEventListener('change', () => {
     clearFieldError('endsAtInput');
     updateButtonState();
   });
@@ -475,22 +521,26 @@ function setupImageEvents() {
   const fileSelectBtn = document.getElementById('fileSelectBtn');
   const imageInput = document.getElementById('imageInput');
   
-  fileSelectBtn.addEventListener('click', function() {
-    imageInput.click();
-  });
+  if(fileSelectBtn) {
+      fileSelectBtn.addEventListener('click', function() {
+        imageInput.click();
+      });
+  }
   
-  imageInput.addEventListener('change', function(e) {
-    const files = Array.from(e.target.files);
-    
-    files.forEach(file => {
-      if (file && file.type.startsWith('image/')) {
-        addImageToPreview(file);
-      }
-    });
+  if(imageInput) {
+      imageInput.addEventListener('change', function(e) {
+        const files = Array.from(e.target.files);
+        
+        files.forEach(file => {
+          if (file && file.type.startsWith('image/')) {
+            addImageToPreview(file);
+          }
+        });
 
-    this.value = '';
-    console.log(`${files.length}개 이미지 추가됨. 총 ${imageFiles.length}개`);
-  });
+        this.value = '';
+        console.log(`${files.length}개 이미지 추가됨. 총 ${imageFiles.length}개`);
+      });
+  }
   
   console.log('이미지 업로드 이벤트 등록 완료');
 }
@@ -498,33 +548,34 @@ function setupImageEvents() {
 function setupSubmitEvent() {
   const eventForm = document.getElementById('eventForm');
   
-  eventForm.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    // 제출 시에는 모든 필드를 touched로 표시하고 에러 표시
-    Object.keys(touchedFields).forEach(key => {
-      touchedFields[key] = true;
-    });
-    
-    if (!validateForm(true)) {
-      showToast('필수 항목을 입력해주세요', 2000, 'error');
-      return;
-    }
-    
-    const btn = e.target.querySelector('button[type="submit"]');
-    const originalText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = '등록 중...';
-    
-    try {
-      const formData = createEventFormData();
-      await submitEvent(formData);
-      
-    } catch (error) {
-      btn.disabled = false;
-      btn.textContent = originalText;
-    }
-  });
+  if(eventForm) {
+      eventForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        Object.keys(touchedFields).forEach(key => {
+          touchedFields[key] = true;
+        });
+        
+        if (!validateForm(true)) {
+          showToast('필수 항목을 입력해주세요', 2000, 'error');
+          return;
+        }
+        
+        const btn = e.target.querySelector('button[type="submit"]');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '등록 중...';
+        
+        try {
+          const formData = createEventFormData();
+          await submitEvent(formData);
+          
+        } catch (error) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      });
+  }
   
   console.log('폼 제출 이벤트 등록 완료');
 }
@@ -536,6 +587,7 @@ async function init() {
   
   await initHeader();
   
+  // 1. 동아리 목록 로드 (내부에서 initCustomSelects 호출함)
   await loadMyClubs();
   
   setupBackButton();
@@ -544,7 +596,7 @@ async function init() {
   setupImageEvents();
   setupSubmitEvent();
 
-  // 초기에는 버튼 상태만 업데이트 (에러 표시 안 함)
+  // 2. 초기 버튼 상태 업데이트 (에러 표시 안 함)
   updateButtonState();
   
   console.log('행사 등록 페이지 로딩 완료');

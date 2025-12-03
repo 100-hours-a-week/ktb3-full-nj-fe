@@ -1,10 +1,13 @@
-// ==================== 커스텀 셀렉트 컴포넌트 ====================
+// common/component/customSelect.js
 
 // 커스텀 셀렉트 초기화
 export function initCustomSelects() {
   const allSelects = document.querySelectorAll('.custom-select');
 
   allSelects.forEach((wrapper) => {
+    // [핵심 수정] 이미 초기화된 셀렉트는 건너뜀 (중복 이벤트 방지)
+    if (wrapper.dataset.initialized === 'true') return;
+
     const targetId = wrapper.dataset.target;
     const hiddenSelect = document.getElementById(targetId);
     const trigger = wrapper.querySelector('.custom-select-trigger');
@@ -17,7 +20,7 @@ export function initCustomSelects() {
 
     // 트리거 클릭 → 열기/닫기
     trigger.addEventListener('click', (e) => {
-      e.stopPropagation();
+      e.stopPropagation(); // 이벤트 전파 중단 (바깥 클릭 감지 방해 금지)
       const isOpen = wrapper.classList.contains('open');
 
       // 다른 셀렉트 닫기
@@ -50,18 +53,24 @@ export function initCustomSelects() {
       trigger.textContent = label;
       wrapper.classList.toggle('has-value', value !== '');
 
-      // change 이벤트 발생
+      // change 이벤트 발생 (중요: 다른 JS 로직이 감지할 수 있게)
       hiddenSelect.dispatchEvent(new Event('change', { bubbles: true }));
 
       // 닫기
       wrapper.classList.remove('open');
     });
+
+    // [핵심 수정] 초기화 완료 표시
+    wrapper.dataset.initialized = 'true';
   });
 
-  // 바깥 클릭 시 모든 드롭다운 닫기
-  document.addEventListener('click', () => {
-    closeAllCustomSelects();
-  });
+  // 바깥 클릭 시 모든 드롭다운 닫기 (이건 한 번만 등록하면 됨)
+  if (!document.body.dataset.selectEventAttached) {
+      document.addEventListener('click', () => {
+        closeAllCustomSelects();
+      });
+      document.body.dataset.selectEventAttached = 'true';
+  }
 }
 
 function closeAllCustomSelects(except) {
@@ -96,14 +105,10 @@ function syncFromHiddenSelect(wrapper, hiddenSelect, trigger, menu) {
   if (matched) {
     trigger.textContent = matched.textContent.trim();
     wrapper.classList.add('has-value');
-  } else {
-    const first = options[0];
-    trigger.textContent = first.textContent.trim();
-    wrapper.classList.remove('has-value');
-  }
+  } 
+  // 값이 없으면 placeholder 유지 (강제 변경 X)
 }
 
-// 커스텀 셀렉트 플레이스홀더 리셋
 export function resetCustomSelectPlaceholder(wrapper, label) {
   const trigger = wrapper.querySelector('.custom-select-trigger');
   if (!trigger) return;
@@ -111,5 +116,3 @@ export function resetCustomSelectPlaceholder(wrapper, label) {
   trigger.textContent = label;
   wrapper.classList.remove('has-value');
 }
-
-console.log('common/component/customSelect.js 로드 완료');
